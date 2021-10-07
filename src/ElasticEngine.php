@@ -320,12 +320,18 @@ class ElasticEngine extends Engine
             ->get($columns)
             ->keyBy($scoutKeyName);
 
+        $withScores = $builder->withScores;
+
         $values = Collection::make($results['hits']['hits'])
-            ->map(function ($hit) use ($models) {
+            ->map(function ($hit) use ($models, $withScores) {
                 $id = $hit['_id'];
 
                 if (isset($models[$id])) {
                     $model = $models[$id];
+
+                    if ($withScores && isset($hit['_score'])) {
+                        $model->_score = $hit['_score'];
+                    }
 
                     if (isset($hit['highlight'])) {
                         $model->highlight = new Highlight($hit['highlight']);
