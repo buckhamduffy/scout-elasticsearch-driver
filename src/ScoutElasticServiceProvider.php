@@ -2,80 +2,81 @@
 
 namespace ScoutElastic;
 
+use Elasticsearch\Client;
 use Elasticsearch\ClientBuilder;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\ServiceProvider;
-use InvalidArgumentException;
 use Laravel\Scout\EngineManager;
-use ScoutElastic\Console\ElasticIndexCreateCommand;
+use Illuminate\Support\Facades\Config;
+use ScoutElastic\Indexers\BulkIndexer;
+use Illuminate\Support\ServiceProvider;
+use ScoutElastic\Indexers\SingleIndexer;
+use ScoutElastic\Console\SearchRuleMakeCommand;
 use ScoutElastic\Console\ElasticIndexDropCommand;
+use ScoutElastic\Console\AggregateRuleMakeCommand;
+use ScoutElastic\Console\ElasticIndexCreateCommand;
 use ScoutElastic\Console\ElasticIndexUpdateCommand;
 use ScoutElastic\Console\ElasticMigrateModelCommand;
 use ScoutElastic\Console\ElasticUpdateMappingCommand;
 use ScoutElastic\Console\IndexConfiguratorMakeCommand;
-use ScoutElastic\Console\SearchableModelMakeCommand;
-use ScoutElastic\Console\SearchRuleMakeCommand;
 
 class ScoutElasticServiceProvider extends ServiceProvider
 {
-    /**
-     * Boot the service provider.
-     *
-     * @return void
-     */
-    public function boot()
-    {
-        $this->publishes([
-            __DIR__.'/../config/scout_elastic.php' => config_path('scout_elastic.php'),
-        ]);
 
-        $this->commands([
-            // make commands
-            IndexConfiguratorMakeCommand::class,
-            SearchableModelMakeCommand::class,
-            SearchRuleMakeCommand::class,
+	/**
+	 * Boot the service provider.
+	 *
+	 * @return mixed
+	 */
+	public function boot()
+	{
+		$this->publishes([
+			__DIR__ . '/../config/scout_elastic.php' => $this->app->configPath('scout_elastic.php'),
+		]);
 
-            // elastic commands
-            ElasticIndexCreateCommand::class,
-            ElasticIndexUpdateCommand::class,
-            ElasticIndexDropCommand::class,
-            ElasticUpdateMappingCommand::class,
-            ElasticMigrateModelCommand::class,
-        ]);
+		$this->commands([
+			// make commands
+			IndexConfiguratorMakeCommand::class,
+			AggregateRuleMakeCommand::class,
+			SearchRuleMakeCommand::class,
 
-        $this
-            ->app
-            ->make(EngineManager::class)
-            ->extend('elastic', function () {
-                $indexerType = config('scout_elastic.indexer', 'single');
-                $updateMapping = config('scout_elastic.update_mapping', true);
+			// elastic commands
+			ElasticIndexCreateCommand::class,
+			ElasticIndexUpdateCommand::class,
+			ElasticIndexDropCommand::class,
+			ElasticUpdateMappingCommand::class,
+			ElasticMigrateModelCommand::class,
+		]);
 
-                $indexerClass = '\\ScoutElastic\\Indexers\\'.ucfirst($indexerType).'Indexer';
+		$this
+			->app
+			->make(EngineManager::class)
+			->extend('elastic', function(): ElasticEngine {
+				$indexerType = config('scout_elastic.indexer', 'single');
+				$updateMapping = config('scout_elastic.update_mapping', true);
 
-                if (! class_exists($indexerClass)) {
-                    throw new InvalidArgumentException(sprintf(
-                        'The %s indexer doesn\'t exist.',
-                        $indexerType
-                    ));
-                }
+				switch ($indexerType) {
+					case 'bulk':
+						return new ElasticEngine(new BulkIndexer(), $updateMapping);
+					case 'single':
+					default:
+						return new ElasticEngine(new SingleIndexer(), $updateMapping);
+				}
+			});
+	}
 
-                return new ElasticEngine(new $indexerClass, $updateMapping);
-            });
-    }
+	/**
+	 * Register the service provider.
+	 *
+	 * @return mixed
+	 */
+	public function register(): void
+	{
+		$this
+			->app
+			->singleton('scout_elastic.client', function(): Client {
+				$config = Config::get('scout_elastic.client');
 
-    /**
-     * Register the service provider.
-     *
-     * @return void
-     */
-    public function register()
-    {
-        $this
-            ->app
-            ->singleton('scout_elastic.client', function () {
-                $config = Config::get('scout_elastic.client');
+				return ClientBuilder::fromConfig($config);
+			});
+	}
 
-                return ClientBuilder::fromConfig($config);
-            });
-    }
 }

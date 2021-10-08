@@ -3,46 +3,44 @@
 namespace ScoutElastic\Console\Features;
 
 use InvalidArgumentException;
-use ScoutElastic\IndexConfigurator;
 use Symfony\Component\Console\Input\InputArgument;
+use ScoutElastic\Interfaces\IndexConfiguratorInterface;
 
 trait RequiresIndexConfiguratorArgument
 {
-    /**
-     * Get the index configurator.
-     *
-     * @return \ScoutElastic\IndexConfigurator
-     */
-    protected function getIndexConfigurator()
-    {
-        $configuratorClass = trim($this->argument('index-configurator'));
+	/**
+	 * Get the index configurator.
+	 */
+	protected function getIndexConfigurator(): IndexConfiguratorInterface
+	{
+		$configuratorClass = trim($this->argument('index-configurator'));
 
-        $configuratorInstance = new $configuratorClass;
+		$configuratorInstance = new $configuratorClass();
 
-        if (! ($configuratorInstance instanceof IndexConfigurator)) {
-            throw new InvalidArgumentException(sprintf(
-                'The class %s must extend %s.',
-                $configuratorClass,
-                IndexConfigurator::class
-            ));
-        }
+		if (!($configuratorInstance instanceof IndexConfiguratorInterface)) {
+			throw new InvalidArgumentException(sprintf(
+				'The class %s must implement %s.',
+				$configuratorClass,
+				IndexConfiguratorInterface::class
+			));
+		}
 
-        return new $configuratorClass;
-    }
+		return new $configuratorClass();
+	}
 
-    /**
-     * Get the arguments.
-     *
-     * @return array
-     */
-    protected function getArguments()
-    {
-        return [
-            [
-                'index-configurator',
-                InputArgument::REQUIRED,
-                'The index configurator class',
-            ],
-        ];
-    }
+	/**
+	 * Get the arguments.
+	 *
+	 * @return array
+	 */
+	protected function getArguments()
+	{
+		return [
+			[
+				'index-configurator',
+				InputArgument::REQUIRED,
+				'The index configurator class',
+			],
+		];
+	}
 }

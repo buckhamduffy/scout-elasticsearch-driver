@@ -2,93 +2,97 @@
 
 namespace ScoutElastic\Indexers;
 
-use Illuminate\Database\Eloquent\Collection;
-use ScoutElastic\Facades\ElasticClient;
+use Log;
+use Exception;
 use ScoutElastic\Migratable;
 use ScoutElastic\Payloads\RawPayload;
 use ScoutElastic\Payloads\TypePayload;
+use ScoutElastic\Facades\ElasticClient;
+use Illuminate\Database\Eloquent\Collection;
+use ScoutElastic\Interfaces\IndexerInterface;
 
 class BulkIndexer implements IndexerInterface
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function update(Collection $models)
-    {
-        $model = $models->first();
-        $indexConfigurator = $model->getIndexConfigurator();
 
-        $bulkPayload = new TypePayload($model);
+	/**
+	 * {@inheritdoc}
+	 */
+	public function update(Collection $models)
+	{
+		$model = $models->first();
+		$indexConfigurator = $model->getIndexConfigurator();
 
-        if (in_array(Migratable::class, class_uses_recursive($indexConfigurator))) {
-            $bulkPayload->useAlias('write');
-        }
+		$bulkPayload = new TypePayload($model);
 
-        if ($documentRefresh = config('scout_elastic.document_refresh')) {
-            $bulkPayload->set('refresh', $documentRefresh);
-        }
+		if (in_array(Migratable::class, class_uses_recursive($indexConfigurator))) {
+			$bulkPayload->useAlias('write');
+		}
 
-        $models->each(function ($model) use ($bulkPayload) {
-            if ($model::usesSoftDelete() && config('scout.soft_delete', false)) {
-                $model->pushSoftDeleteMetadata();
-            }
+		if ($documentRefresh = config('scout_elastic.document_refresh')) {
+			$bulkPayload->set('refresh', $documentRefresh);
+		}
 
-            $modelData = array_merge(
-                $model->toSearchableArray(),
-                $model->scoutMetadata()
-            );
+		$models->each(function($model) use ($bulkPayload) {
+			if ($model::usesSoftDelete() && config('scout.soft_delete', false)) {
+				$model->pushSoftDeleteMetadata();
+			}
 
-            if (empty($modelData)) {
-                return true;
-            }
+			$modelData = array_merge(
+				$model->toSearchableArray(),
+				$model->scoutMetadata()
+			);
 
-            $actionPayload = (new RawPayload)
-                ->set('index._id', $model->getScoutKey());
+			if (empty($modelData)) {
+				return true;
+			}
 
-            $bulkPayload
-                ->add('body', $actionPayload->get())
-                ->add('body', $modelData);
-        });
+			$actionPayload = (new RawPayload())
+				->set('index._id', $model->getScoutKey());
 
-        $response = ElasticClient::bulk($bulkPayload->get());
+			$bulkPayload
+				->add('body', $actionPayload->get())
+				->add('body', $modelData);
+		});
 
-        if ($response['errors']) {
+		$response = ElasticClient::bulk($bulkPayload->get());
 
-            // Response included every record's status which is a lot to dig through when chunking by thousand
-            // Sort through the items to only log the failed items
-            foreach ($response['items'] as $item) {
-                if ($item['index']['error']) {
-                    \Log::error($item);
-                }
-            }
+		if ($response['errors']) {
+			// Response included every record's status which is a lot to dig through when chunking by thousand
+			// Sort through the items to only log the failed items
+			foreach ($response['items'] as $item) {
+				if ($item['index']['error']) {
+					Log::error($item);
+				}
+			}
 
-            throw new \Exception('ElasticSearch responded with an error');
-        }
+			throw new Exception('ElasticSearch responded with an error');
+		}
 
-    }
+	}
 
-    /**
-     * {@inheritdoc}
-     */
-    public function delete(Collection $models)
-    {
-        $model = $models->first();
+	/**
+	 * {@inheritdoc}
+	 */
+	public function delete(Collection $models): void
+	{
+		$model = $models->first();
 
-        $bulkPayload = new TypePayload($model);
+		$bulkPayload = new TypePayload($model);
 
-        $models->each(function ($model) use ($bulkPayload) {
-            $actionPayload = (new RawPayload)
-                ->set('delete._id', $model->getScoutKey());
+		$models->each(function($model) use ($bulkPayload): void {
+			$actionPayload = (new RawPayload())
+				->set('delete._id', $model->getScoutKey());
 
-            $bulkPayload->add('body', $actionPayload->get());
-        });
+			$bulkPayload->add('body', $actionPayload->get());
+		});
 
-        if ($documentRefresh = config('scout_elastic.document_refresh')) {
-            $bulkPayload->set('refresh', $documentRefresh);
-        }
+		if ($documentRefresh = config('scout_elastic.document_refresh')) {
+			$bulkPayload->set('refresh', $documentRefresh);
+		}
 
-        $bulkPayload->set('client.ignore', 404);
+		$bulkPayload->set('client.ignore', 404);
 
-        ElasticClient::bulk($bulkPayload->get());
-    }
+		ElasticClient::bulk($bulkPayload->get());
+	}
+
 }

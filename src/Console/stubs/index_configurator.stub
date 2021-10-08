@@ -2,17 +2,30 @@
 
 namespace DummyNamespace;
 
-use ScoutElastic\IndexConfigurator;
+use ScoutElastic\Interfaces\IndexConfiguratorInterface;
 use ScoutElastic\Migratable;
 
 class DummyClass extends IndexConfigurator
 {
     use Migratable;
 
-    /**
-     * @var array
-     */
-    protected $settings = [
-        //
-    ];
+	public function getDefaultMapping(): array
+	{
+        return [
+            'properties' => [
+            ]
+        ];
+	}
+
+	public function getSettings(): array
+	{
+		return [
+		];
+	}
+
+	public function getName(): string
+	{
+        return '{{name}}';
+	}
+
 }

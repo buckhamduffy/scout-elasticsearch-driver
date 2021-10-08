@@ -6,121 +6,112 @@ use Illuminate\Support\Arr;
 
 class RawPayload
 {
-    /**
-     * The payload.
-     *
-     * @var array
-     */
-    protected $payload = [];
+	/**
+	 * The payload.
+	 */
+	protected array $payload = [];
 
-    /**
-     * Set a value.
-     *
-     * @param  string  $key
-     * @param  mixed  $value
-     * @return $this
-     */
-    public function set($key, $value)
-    {
-        if (! is_null($key)) {
-            Arr::set($this->payload, $key, $value);
-        }
+	/**
+	 * Set a value.
+	 *
+	 * @param  string  $key
+	 * @param  mixed  $value
+	 * @return $this
+	 */
+	public function set($key, $value)
+	{
+		Arr::set($this->payload, $key, $value);
 
-        return $this;
-    }
+		return $this;
+	}
 
-    /**
-     * Set a value if it's not empty.
-     *
-     * @param  string  $key
-     * @param  mixed  $value
-     * @return $this
-     */
-    public function setIfNotEmpty($key, $value)
-    {
-        if (empty($value)) {
-            return $this;
-        }
+	/**
+	 * Set a value if it's not empty.
+	 *
+	 * @param  mixed  $value
+	 * @return $this
+	 */
+	public function setIfNotEmpty(string $key, $value)
+	{
+		if (empty($value)) {
+			return $this;
+		}
 
-        return $this->set($key, $value);
-    }
+		return $this->set($key, $value);
+	}
 
-    /**
-     * Set a value if it's not null.
-     *
-     * @param  string  $key
-     * @param  mixed  $value
-     * @return $this
-     */
-    public function setIfNotNull($key, $value)
-    {
-        if (is_null($value)) {
-            return $this;
-        }
+	/**
+	 * Set a value if it's not null.
+	 *
+	 * @param  mixed  $value
+	 * @return $this
+	 */
+	public function setIfNotNull(string $key, $value)
+	{
+		if (is_null($value)) {
+			return $this;
+		}
 
-        return $this->set($key, $value);
-    }
+		return $this->set($key, $value);
+	}
 
-    /**
-     * Checks that the payload key has a value.
-     *
-     * @param  string  $key
-     * @return bool
-     */
-    public function has($key)
-    {
-        return Arr::has($this->payload, $key);
-    }
+	/**
+	 * Checks that the payload key has a value.
+	 *
+	 * @return bool
+	 */
+	public function has(string $key)
+	{
+		return Arr::has($this->payload, $key);
+	}
 
-    /**
-     * Add a value.
-     *
-     * @param  string  $key
-     * @param  mixed  $value
-     * @return $this
-     */
-    public function add($key, $value)
-    {
-        if (! is_null($key)) {
-            $currentValue = Arr::get($this->payload, $key, []);
+	/**
+	 * Add a value.
+	 *
+	 * @param  mixed  $value
+	 * @return $this
+	 */
+	public function add(string $key, $value)
+	{
+		if (!is_null($key)) {
+			$currentValue = Arr::get($this->payload, $key, []);
 
-            if (! is_array($currentValue)) {
-                $currentValue = Arr::wrap($currentValue);
-            }
+			if (!is_array($currentValue)) {
+				$currentValue = Arr::wrap($currentValue);
+			}
 
-            $currentValue[] = $value;
+			$currentValue[] = $value;
 
-            Arr::set($this->payload, $key, $currentValue);
-        }
+			Arr::set($this->payload, $key, $currentValue);
+		}
 
-        return $this;
-    }
+		return $this;
+	}
 
-    /**
-     * Add a value if it's not empty.
-     *
-     * @param  string  $key
-     * @param  mixed  $value
-     * @return $this
-     */
-    public function addIfNotEmpty($key, $value)
-    {
-        if (empty($value)) {
-            return $this;
-        }
+	/**
+	 * Add a value if it's not empty.
+	 *
+	 * @param  mixed  $value
+	 * @return $this
+	 */
+	public function addIfNotEmpty(string $key, $value)
+	{
+		if (empty($value)) {
+			return $this;
+		}
 
-        return $this->add($key, $value);
-    }
+		return $this->add($key, $value);
+	}
 
-    /**
-     * Get value.
-     *
-     * @param  string|null  $key
-     * @param  mixed|null  $default
-     * @return mixed
-     */
-    public function get($key = null, $default = null)
-    {
-        return Arr::get($this->payload, $key, $default);
-    }
+	/**
+	 * Get value.
+	 *
+	 * @param  string|null  $key
+	 * @param  mixed|null  $default
+	 * @return mixed
+	 */
+	public function get($key = null, $default = null)
+	{
+		return Arr::get($this->payload, $key, $default);
+	}
 }

@@ -6,39 +6,35 @@ use Illuminate\Database\Eloquent\Model;
 
 class SearchBuilder extends FilterBuilder
 {
-    /**
-     * The rules array.
-     *
-     * @var array
-     */
-    public $rules = [];
+	/**
+	 * The rules array.
+	 */
+	public array $rules = [];
 
-    /**
-     * SearchBuilder constructor.
-     *
-     * @param  \Illuminate\Database\Eloquent\Model  $model
-     * @param  string  $query
-     * @param  callable|null  $callback
-     * @param  bool  $softDelete
-     * @return void
-     */
-    public function __construct(Model $model, $query, $callback = null, $softDelete = false)
-    {
-        parent::__construct($model, $callback, $softDelete);
+	/**
+	 * SearchBuilder constructor.
+	 *
+	 * @param  string  $query
+	 * @param  callable|null  $callback
+	 * @param  bool  $softDelete
+	 * @return void
+	 */
+	public function __construct(Model $model, $query, $callback = null, $softDelete = false)
+	{
+		parent::__construct($model, $callback, $softDelete);
 
-        $this->query = $query;
-    }
+		$this->query = $query;
+	}
 
-    /**
-     * Add a rule.
-     *
-     * @param  string|callable  $rule Search rule class name or function
-     * @return $this
-     */
-    public function rule($rule)
-    {
-        $this->rules[] = $rule;
+	/**
+	 * Add a rule.
+	 *
+	 * @param  string|callable  $rule Search rule class name or function
+	 */
+	public function rule($rule): self
+	{
+		$this->rules[] = $rule;
 
-        return $this;
-    }
+		return $this;
+	}
 }

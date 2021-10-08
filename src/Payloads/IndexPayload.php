@@ -3,63 +3,59 @@
 namespace ScoutElastic\Payloads;
 
 use Exception;
-use ScoutElastic\IndexConfigurator;
 use ScoutElastic\Payloads\Features\HasProtectedKeys;
+use ScoutElastic\Interfaces\IndexConfiguratorInterface;
 
 class IndexPayload extends RawPayload
 {
-    use HasProtectedKeys;
 
-    /**
-     * The protected keys.
-     *
-     * @var array
-     */
-    protected $protectedKeys = [
-        'index',
-    ];
+	use HasProtectedKeys;
 
-    /**
-     * The index configurator.
-     *
-     * @var \ScoutElastic\IndexConfigurator
-     */
-    protected $indexConfigurator;
+	/**
+	 * The protected keys.
+	 */
+	protected array $protectedKeys = [
+		'index',
+	];
 
-    /**
-     * IndexPayload constructor.
-     *
-     * @param  \ScoutElastic\IndexConfigurator  $indexConfigurator
-     * @return void
-     */
-    public function __construct(IndexConfigurator $indexConfigurator)
-    {
-        $this->indexConfigurator = $indexConfigurator;
+	/**
+	 * The index configurator.
+	 */
+	protected IndexConfiguratorInterface $indexConfigurator;
 
-        $this->payload['index'] = $indexConfigurator->getName();
-    }
+	/**
+	 * IndexPayload constructor.
+	 *
+	 * @return void
+	 */
+	public function __construct(IndexConfiguratorInterface $indexConfigurator)
+	{
+		$this->indexConfigurator = $indexConfigurator;
 
-    /**
-     * Use an alias.
-     *
-     * @param  string  $alias
-     * @return $this
-     * @throws \Exception
-     */
-    public function useAlias($alias)
-    {
-        $aliasGetter = 'get'.ucfirst($alias).'Alias';
+		$this->payload['index'] = $indexConfigurator->getName();
+	}
 
-        if (! method_exists($this->indexConfigurator, $aliasGetter)) {
-            throw new Exception(sprintf(
-                'The index configurator %s doesn\'t have getter for the %s alias.',
-                get_class($this->indexConfigurator),
-                $alias
-            ));
-        }
+	/**
+	 * Use an alias.
+	 *
+	 * @return $this
+	 * @throws Exception
+	 */
+	public function useAlias(string $alias)
+	{
+		$aliasGetter = 'get' . ucfirst($alias) . 'Alias';
 
-        $this->payload['index'] = call_user_func([$this->indexConfigurator, $aliasGetter]);
+		if (!method_exists($this->indexConfigurator, $aliasGetter)) {
+			throw new Exception(sprintf(
+				"The index configurator %s doesn't have getter for the %s alias.",
+				get_class($this->indexConfigurator),
+				$alias
+			));
+		}
 
-        return $this;
-    }
+		$this->payload['index'] = call_user_func([$this->indexConfigurator, $aliasGetter]);
+
+		return $this;
+	}
+
 }

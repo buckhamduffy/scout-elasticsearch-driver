@@ -2,64 +2,65 @@
 
 namespace ScoutElastic\Indexers;
 
-use Illuminate\Database\Eloquent\Collection;
-use ScoutElastic\Facades\ElasticClient;
 use ScoutElastic\Migratable;
+use ScoutElastic\Facades\ElasticClient;
 use ScoutElastic\Payloads\DocumentPayload;
+use Illuminate\Database\Eloquent\Collection;
+use ScoutElastic\Interfaces\IndexerInterface;
 
 class SingleIndexer implements IndexerInterface
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function update(Collection $models)
-    {
-        $models->each(function ($model) {
-            if ($model::usesSoftDelete() && config('scout.soft_delete', false)) {
-                $model->pushSoftDeleteMetadata();
-            }
+	/**
+	 * {@inheritdoc}
+	 */
+	public function update(Collection $models)
+	{
+		$models->each(function($model) {
+			if ($model::usesSoftDelete() && config('scout.soft_delete', false)) {
+				$model->pushSoftDeleteMetadata();
+			}
 
-            $modelData = array_merge(
-                $model->toSearchableArray(),
-                $model->scoutMetadata()
-            );
+			$modelData = array_merge(
+				$model->toSearchableArray(),
+				$model->scoutMetadata()
+			);
 
-            if (empty($modelData)) {
-                return true;
-            }
+			if (empty($modelData)) {
+				return true;
+			}
 
-            $indexConfigurator = $model->getIndexConfigurator();
+			$indexConfigurator = $model->getIndexConfigurator();
 
-            $payload = (new DocumentPayload($model))
-                ->set('body', $modelData);
+			$payload = (new DocumentPayload($model))
+				->set('body', $modelData);
 
-            if (in_array(Migratable::class, class_uses_recursive($indexConfigurator))) {
-                $payload->useAlias('write');
-            }
+			if (in_array(Migratable::class, class_uses_recursive($indexConfigurator))) {
+				$payload->useAlias('write');
+			}
 
-            if ($documentRefresh = config('scout_elastic.document_refresh')) {
-                $payload->set('refresh', $documentRefresh);
-            }
+			if ($documentRefresh = config('scout_elastic.document_refresh')) {
+				$payload->set('refresh', $documentRefresh);
+			}
 
-            ElasticClient::index($payload->get());
-        });
-    }
+			ElasticClient::index($payload->get());
+		});
+	}
 
-    /**
-     * {@inheritdoc}
-     */
-    public function delete(Collection $models)
-    {
-        $models->each(function ($model) {
-            $payload = new DocumentPayload($model);
+	/**
+	 * {@inheritdoc}
+	 */
+	public function delete(Collection $models): void
+	{
+		$models->each(function($model): void {
+			$payload = new DocumentPayload($model);
 
-            if ($documentRefresh = config('scout_elastic.document_refresh')) {
-                $payload->set('refresh', $documentRefresh);
-            }
+			if ($documentRefresh = config('scout_elastic.document_refresh')) {
+				$payload->set('refresh', $documentRefresh);
+			}
 
-            $payload->set('client.ignore', 404);
+			$payload->set('client.ignore', 404);
 
-            ElasticClient::delete($payload->get());
-        });
-    }
+			ElasticClient::delete($payload->get());
+		});
+	}
 }

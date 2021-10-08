@@ -4,11 +4,8 @@
 
 ---
 
-[![Packagist](https://img.shields.io/packagist/v/babenkoivan/scout-elasticsearch-driver.svg)](https://packagist.org/packages/babenkoivan/scout-elasticsearch-driver)
-[![Packagist](https://img.shields.io/packagist/dt/babenkoivan/scout-elasticsearch-driver.svg)](https://packagist.org/packages/babenkoivan/scout-elasticsearch-driver)
-[![Build Status](https://travis-ci.com/babenkoivan/scout-elasticsearch-driver.svg?branch=master)](https://travis-ci.com/babenkoivan/scout-elasticsearch-driver)
-[![Donate](https://img.shields.io/badge/donate-PayPal-blue.svg)](https://www.paypal.me/babenkoi)
-
+[![Packagist](https://img.shields.io/packagist/v/buckhamduffy/scout-elasticsearch-driver.svg)](https://packagist.org/packages/buckhamduffy/scout-elasticsearch-driver)
+[![Packagist](https://img.shields.io/packagist/dt/buckhamduffy/scout-elasticsearch-driver.svg)](https://packagist.org/packages/buckhamduffy/scout-elasticsearch-driver)
 ---
 
 This package offers advanced functionality for searching and filtering data in Elasticsearch.
@@ -25,6 +22,7 @@ Check out its [features](#features)!
 * [Usage](#usage)
 * [Console commands](#console-commands)
 * [Search rules](#search-rules)
+* [Aggregate rules](#aggregate-rules)
 * [Available filters](#available-filters)
 * [Zero downtime migration](#zero-downtime-migration)
 * [Debug](#debug)
@@ -44,8 +42,8 @@ Check out its [features](#features)!
 
 The package has been tested in the following configuration: 
 
-* PHP version &gt;=7.1.3, &lt;=7.3
-* Laravel Framework version &gt;=5.8, &lt;=6
+* PHP version &gt;=7.4, &lt;=8.0
+* Laravel Framework version &gt;=7.0, &lt;=8.0
 * Elasticsearch version &gt;=7
 
 ## Installation
@@ -53,7 +51,7 @@ The package has been tested in the following configuration:
 Use composer to install the package:
 
 ```
-composer require babenkoivan/scout-elasticsearch-driver
+composer require buckhamduffy/scout-elasticsearch-driver
 ```
 
 If you are using Laravel version &lt;= 5.4 or [the package discovery](https://laravel.com/docs/5.5/packages#package-discovery)
@@ -459,6 +457,70 @@ $model->highlight->name;
 
 // or string value:
  $model->highlight->nameAsString;
+```
+
+## Aggregate rules
+
+A aggregate rule is a class that describes how a aggregate query will be executed.
+To create a aggregate rule use the command:
+
+```
+php artisan make:aggregate-rule MyAggregateRule
+```
+
+In the file `app/MyAggregateRule.php` you will find a class definition:
+
+```php
+<?php
+namespace App;
+use ScoutElastic\AggregateRule;
+class MyAggregateRule extends AggregateRule
+{
+    // This method returns an array that represents a content of bool query.
+    public function buildAggregatePayload()
+    {
+        return [
+            'icon_count' => [
+                'terms' => [
+                    'field' => 'icon_id',
+                    'size' => 15
+                ]
+            ],
+            'style_count' => [
+                'terms' => [
+                    'field' => 'style_id',
+                    'size' => 7
+                ]
+            ],
+            'category_count' => [
+                'terms' => [
+                    'field' => 'category_id',
+                    'size' => 39
+                ]
+            ]
+        ];
+    }
+}
+```
+
+You can read more about aggregation queries [here](https://www.elastic.co/guide/en/elasticsearch/reference/5.2/returning-only-agg-results.html).
+
+To determine default aggregate rules for a model just add a property:
+
+```php
+<?php
+namespace App;
+use ScoutElastic\Searchable;
+use Illuminate\Database\Eloquent\Model;
+class MyModel extends Model
+{
+    use Searchable;
+    
+    // You can set several rules for one model. In this case, the first not empty result will be returned.
+    protected $aggregateRules = [
+        MyAggregateRule::class
+    ];
+}
 ```
 
 ## Available filters

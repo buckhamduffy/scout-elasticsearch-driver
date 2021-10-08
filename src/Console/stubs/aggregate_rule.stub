@@ -1,0 +1,14 @@
+<?php
+
+namespace DummyNamespace;
+
+use ScoutElastic\Interfaces\AggregateRuleInterface;
+
+class DummyClass extends AggregateRuleInterface
+{
+    public function buildAggregatePayload(): array
+    {
+        return [
+        ];
+    }
+}

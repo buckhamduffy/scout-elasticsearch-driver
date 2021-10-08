@@ -6,26 +6,29 @@ use Illuminate\Console\GeneratorCommand;
 
 class SearchRuleMakeCommand extends GeneratorCommand
 {
-    /**
-     * {@inheritdoc}
-     */
-    protected $name = 'make:search-rule';
+	/**
+	 * {@inheritdoc}
+	 * @var string
+	 */
+	protected $name = 'make:search-rule';
 
-    /**
-     * {@inheritdoc}
-     */
-    protected $description = 'Create a new search rule';
+	/**
+	 * {@inheritdoc}
+	 * @var string
+	 */
+	protected $description = 'Create a new search rule';
 
-    /**
-     * {@inheritdoc}
-     */
-    protected $type = 'Rule';
+	/**
+	 * {@inheritdoc}
+	 * @var string
+	 */
+	protected $type = 'Rule';
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getStub()
-    {
-        return __DIR__.'/stubs/search_rule.stub';
-    }
+	/**
+	 * {@inheritdoc}
+	 */
+	protected function getStub(): string
+	{
+		return __DIR__ . '/stubs/search_rule.stub';
+	}
 }

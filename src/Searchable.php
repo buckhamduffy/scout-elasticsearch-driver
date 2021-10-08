@@ -4,142 +4,144 @@ namespace ScoutElastic;
 
 use Exception;
 use Illuminate\Support\Arr;
-use Laravel\Scout\Searchable as SourceSearchable;
 use ScoutElastic\Builders\FilterBuilder;
 use ScoutElastic\Builders\SearchBuilder;
+use Laravel\Scout\Searchable as SourceSearchable;
 
 trait Searchable
 {
-    use SourceSearchable {
-        SourceSearchable::getScoutKeyName as sourceGetScoutKeyName;
-    }
 
-    /**
-     * The highlights.
-     *
-     * @var \ScoutElastic\Highlight|null
-     */
-    private $highlight = null;
+	use SourceSearchable {
+		SourceSearchable::getScoutKeyName as sourceGetScoutKeyName;
+	}
 
-    /**
-     * The score returned from elasticsearch.
-     *
-     * @var float|null
-     */
-    public $_score;
+	/**
+	 * The highlights.
+	 */
+	private ?Highlight $highlight = null;
 
-    /**
-     * Get the index configurator.
-     *
-     * @return \ScoutElastic\IndexConfigurator
-     * @throws \Exception
-     */
-    public function getIndexConfigurator()
-    {
-        static $indexConfigurator;
+	/**
+	 * The score returned from elasticsearch.
+	 */
+	public ?float $_score = null;
 
-        if (! $indexConfigurator) {
-            if (! isset($this->indexConfigurator) || empty($this->indexConfigurator)) {
-                throw new Exception(sprintf(
-                    'An index configurator for the %s model is not specified.',
-                    __CLASS__
-                ));
-            }
+	/**
+	 * Get the index configurator.
+	 *
+	 * @return IndexConfigurator
+	 * @throws Exception
+	 */
+	public function getIndexConfigurator()
+	{
+		static $indexConfigurator;
 
-            $indexConfiguratorClass = $this->indexConfigurator;
-            $indexConfigurator = new $indexConfiguratorClass;
-        }
+		if (!$indexConfigurator) {
+			if (!isset($this->indexConfigurator) || empty($this->indexConfigurator)) {
+				throw new Exception(sprintf(
+					'An index configurator for the %s model is not specified.',
+					self::class
+				));
+			}
 
-        return $indexConfigurator;
-    }
+			$indexConfiguratorClass = $this->indexConfigurator;
+			$indexConfigurator = new $indexConfiguratorClass();
+		}
 
-    /**
-     * Get the mapping.
-     *
-     * @return array
-     */
-    public function getMapping()
-    {
-        $mapping = $this->mapping ?? [];
+		return $indexConfigurator;
+	}
 
-        if ($this::usesSoftDelete() && config('scout.soft_delete', false)) {
-            Arr::set($mapping, 'properties.__soft_deleted', ['type' => 'integer']);
-        }
+	/**
+	 * Get the mapping.
+	 *
+	 * @return array
+	 */
+	public function getMapping()
+	{
+		$mapping = $this->mapping ?? [];
 
-        return $mapping;
-    }
+		if ($this::usesSoftDelete() && config('scout.soft_delete', false)) {
+			Arr::set($mapping, 'properties.__soft_deleted', ['type' => 'integer']);
+		}
 
-    /**
-     * Get the search rules.
-     *
-     * @return array
-     */
-    public function getSearchRules()
-    {
-        return isset($this->searchRules) && count($this->searchRules) > 0 ?
-            $this->searchRules : [SearchRule::class];
-    }
+		return $mapping;
+	}
 
-    /**
-     * Execute the search.
-     *
-     * @param  string  $query
-     * @param  callable|null  $callback
-     * @return \ScoutElastic\Builders\FilterBuilder|\ScoutElastic\Builders\SearchBuilder
-     */
-    public static function search($query, $callback = null)
-    {
-        $softDelete = static::usesSoftDelete() && config('scout.soft_delete', false);
+	/**
+	 * Get the search rules.
+	 *
+	 * @return array
+	 */
+	public function getSearchRules()
+	{
+		return isset($this->searchRules) && count($this->searchRules) > 0 ? $this->searchRules : [SearchRule::class];
+	}
 
-        if ($query === '*') {
-            return new FilterBuilder(new static, $callback, $softDelete);
-        } else {
-            return new SearchBuilder(new static, $query, $callback, $softDelete);
-        }
-    }
+	/**
+	 * Execute the search.
+	 *
+	 * @param callable|null $callback
+	 * @return FilterBuilder|SearchBuilder|void
+	 */
+	public static function search(string $query, $callback = null)
+	{
+		$softDelete = static::usesSoftDelete() && config('scout.soft_delete', false);
 
-    /**
-     * Execute a raw search.
-     *
-     * @param  array  $query
-     * @return array
-     */
-    public static function searchRaw(array $query)
-    {
-        $model = new static;
+		if ($query === '*') {
+			return new FilterBuilder(new static(), $callback, $softDelete);
+		}
 
-        return $model->searchableUsing()
-            ->searchRaw($model, $query);
-    }
+		return new SearchBuilder(new static(), $query, $callback, $softDelete);
+	}
 
-    /**
-     * Set the highlight attribute.
-     *
-     * @param  \ScoutElastic\Highlight  $value
-     * @return void
-     */
-    public function setHighlightAttribute(Highlight $value)
-    {
-        $this->highlight = $value;
-    }
+	/**
+	 * Execute a raw search.
+	 *
+	 * @return array
+	 */
+	public static function searchRaw(array $query)
+	{
+		$model = new static();
 
-    /**
-     * Get the highlight attribute.
-     *
-     * @return \ScoutElastic\Highlight|null
-     */
-    public function getHighlightAttribute()
-    {
-        return $this->highlight;
-    }
+		return $model->searchableUsing()
+			->searchRaw($model, $query);
+	}
 
-    /**
-     * Get the key name used to index the model.
-     *
-     * @return mixed
-     */
-    public function getScoutKeyName()
-    {
-        return $this->getKeyName();
-    }
+	/**
+	 * Set the highlight attribute.
+	 *
+	 * @return void
+	 */
+	public function setHighlightAttribute(Highlight $value)
+	{
+		$this->highlight = $value;
+	}
+
+	/**
+	 * Get the highlight attribute.
+	 *
+	 * @return Highlight|null
+	 */
+	public function getHighlightAttribute()
+	{
+		return $this->highlight;
+	}
+
+	/**
+	 * Get the key name used to index the model.
+	 *
+	 * @return mixed
+	 */
+	public function getScoutKeyName()
+	{
+		return $this->getKeyName();
+	}
+
+	/**
+	 * @return string[]|mixed
+	 */
+	public function getAggregateRules()
+	{
+		return isset($this->aggregateRules) && count($this->aggregateRules) > 0 ? $this->aggregateRules : [AggregateRule::class];
+	}
+
 }
