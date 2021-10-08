@@ -930,7 +930,7 @@ class FilterBuilder extends Builder
 	 */
 	protected function invalidOperatorAndValue(string $operator, $value): bool
 	{
-		return is_null($value) && in_array($operator, self::OPERATORS) && !in_array($operator, ['=', '!=']);
+		return is_null($value) && in_array($operator, self::OPERATORS) && !in_array($operator, ['=', '!=', '<>']);
 	}
 
 	/**

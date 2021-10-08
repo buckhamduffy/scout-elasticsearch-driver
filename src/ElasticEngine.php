@@ -14,11 +14,11 @@ use Illuminate\Support\Facades\Artisan;
 use ScoutElastic\Facades\ElasticClient;
 use ScoutElastic\Builders\SearchBuilder;
 use Illuminate\Database\Eloquent\Collection;
-
 use ScoutElastic\Interfaces\IndexerInterface;
 
 class ElasticEngine extends Engine
 {
+
 	/**
 	 * The indexer interface.
 	 */
@@ -37,7 +37,7 @@ class ElasticEngine extends Engine
 	/**
 	 * ElasticEngine constructor.
 	 *
-	 * @param  bool  $updateMapping
+	 * @param bool $updateMapping
 	 * @return void
 	 */
 	public function __construct(IndexerInterface $indexer, $updateMapping)
@@ -87,7 +87,10 @@ class ElasticEngine extends Engine
 	/**
 	 * Build the payload collection.
 	 */
-	public function buildSearchQueryPayloadCollection(Builder $builder, array $options = []): \Illuminate\Support\Collection
+	public function buildSearchQueryPayloadCollection(
+		Builder $builder,
+		array $options = []
+	): \Illuminate\Support\Collection
 	{
 		$payloadCollection = collect();
 
@@ -255,8 +258,8 @@ class ElasticEngine extends Engine
 	/**
 	 * Make a raw search.
 	 *
-	 * @return mixed
 	 * @param mixed[] $query
+	 * @return mixed
 	 */
 	public function searchRaw(Model $model, array $query)
 	{
@@ -270,9 +273,9 @@ class ElasticEngine extends Engine
 	/**
 	 * {@inheritdoc}
 	 */
-	public function mapIds($results, string $key = '_id'): \Illuminate\Support\Collection
+	public function mapIds($results, string $key = 'id'): \Illuminate\Support\Collection
 	{
-		return collect($results['hits']['hits'])->pluck($key);
+		return collect($results['hits']['hits'])->pluck('_source.' . $key);
 	}
 
 	/**
@@ -387,27 +390,27 @@ class ElasticEngine extends Engine
 		$withScores = $builder->withScores;
 
 		$values = LazyCollection::make($results['hits']['hits'])
-		->map(function($hit) use ($models, $withScores) {
-			$id = $hit['_id'];
+			->map(function($hit) use ($models, $withScores) {
+				$id = $hit['_id'];
 
-			if (isset($models[$id])) {
-				$model = $models[$id];
+				if (isset($models[$id])) {
+					$model = $models[$id];
 
-				if ($withScores && isset($hit['_score'])) {
-					$model->_score = $hit['_score'];
+					if ($withScores && isset($hit['_score'])) {
+						$model->_score = $hit['_score'];
+					}
+
+					if (isset($hit['highlight'])) {
+						$model->highlight = new Highlight($hit['highlight']);
+					}
+
+					if (isset($hit['sort'])) {
+						$model->sortPayload = $hit['sort'];
+					}
+
+					return $model;
 				}
-
-				if (isset($hit['highlight'])) {
-					$model->highlight = new Highlight($hit['highlight']);
-				}
-
-				if (isset($hit['sort'])) {
-					$model->sortPayload = $hit['sort'];
-				}
-
-				return $model;
-			}
-		})
+			})
 			->filter()
 			->values();
 
@@ -439,4 +442,5 @@ class ElasticEngine extends Engine
 		ElasticClient::indices()
 			->delete($payload);
 	}
+
 }
