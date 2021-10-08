@@ -2,13 +2,14 @@
 
 namespace ScoutElastic\Tests\Dependencies;
 
-use ScoutElastic\IndexConfigurator as ElasticIndexConfigurator;
+
+use ScoutElastic\Interfaces\IndexConfiguratorInterface;
 
 trait IndexConfigurator
 {
     /**
      * @param  array  $params Available parameters: name, settings, default_mapping, methods.
-     * @return ElasticIndexConfigurator
+     * @return IndexConfiguratorInterface
      */
     public function mockIndexConfigurator(array $params = [])
     {
@@ -21,7 +22,7 @@ trait IndexConfigurator
             'getWriteAlias',
         ]);
 
-        $mock = $this->getMockBuilder(ElasticIndexConfigurator::class)
+        $mock = $this->getMockBuilder(IndexConfiguratorInterface::class)
                      ->setMethods($methods)->getMock();
 
         $mock->method('getName')

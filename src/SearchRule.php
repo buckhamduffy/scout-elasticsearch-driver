@@ -31,11 +31,10 @@ class SearchRule
 
 	/**
 	 * Build the highlight payload.
-	 *
-	 * @return array|null
 	 */
-	public function buildHighlightPayload(): void
+	public function buildHighlightPayload(): ?array
 	{
+		return null;
 	}
 
 	/**

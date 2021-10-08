@@ -9,7 +9,7 @@ class SearchRule extends ElasticSearchRule
     /**
      * {@inheritdoc}
      */
-    public function buildHighlightPayload()
+    public function buildHighlightPayload(): ?array
     {
         $highlight = null;
 

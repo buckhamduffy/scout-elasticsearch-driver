@@ -67,6 +67,19 @@ class FilterBuilder extends Builder
 	public bool $withScores = false;
 
 	/**
+	 * List of operators that are allowed in ES
+	 */
+	private const OPERATORS = [
+		'=',
+		'>',
+		'<',
+		'!=',
+		'>=',
+		'<=',
+		'<>',
+	];
+
+	/**
 	 * FilterBuilder constructor.
 	 *
 	 * @param callable|null $callback
@@ -96,8 +109,8 @@ class FilterBuilder extends Builder
 	 * Supported operators are =, &gt;, &lt;, &gt;=, &lt;=, &lt;&gt;
 	 *
 	 * @param string|Closure $field
-	 * @param null $operator
-	 * @param null $value
+	 * @param mixed $operator
+	 * @param mixed $value
 	 * @param string $boolean
 	 * @return $this|FilterBuilder
 	 */
@@ -112,6 +125,11 @@ class FilterBuilder extends Builder
 			$operator,
 			func_num_args() === 2
 		);
+
+		if ($this->invalidOperator($operator)) {
+			$value = $operator;
+			$operator = '=';
+		}
 
 		switch ($operator) {
 			case '=':
@@ -228,21 +246,6 @@ class FilterBuilder extends Builder
 		return $this;
 	}
 
-	/**
-	 * Prepare the value and operator for a where clause.
-	 *
-	 *
-	 * @return string[]
-	 * @throws InvalidArgumentException
-	 */
-	public function prepareValueAndOperator(string $value, string $operator, bool $useDefault = false): array
-	{
-		if ($useDefault) {
-			return [$operator, '='];
-		}
-
-		return [$value, $operator];
-	}
 
 	/**
 	 * @param $condition
@@ -898,5 +901,44 @@ class FilterBuilder extends Builder
 		});
 	}
 
+
+	/**
+	 * Prepare the value and operator for a where clause.
+	 * @param $value mixed|null
+	 * @param $operator mixed
+	 * @throws InvalidArgumentException
+	 */
+	protected function prepareValueAndOperator($value, $operator, bool $useDefault = false): array
+	{
+		if ($useDefault) {
+			return [$operator, '='];
+		}
+
+		if ($this->invalidOperatorAndValue($operator, $value)) {
+			throw new InvalidArgumentException('Illegal operator and value combination.');
+		}
+
+		return [$value, $operator];
+	}
+
+	/**
+	 * Determine if the given operator and value combination is legal.
+	 *
+	 * Prevents using Null values with invalid operators.
+	 *
+	 * @param mixed $value
+	 */
+	protected function invalidOperatorAndValue(string $operator, $value): bool
+	{
+		return is_null($value) && in_array($operator, self::OPERATORS) && !in_array($operator, ['=', '!=']);
+	}
+
+	/**
+	 * Determine if the given operator is supported.
+	 */
+	protected function invalidOperator(string $operator): bool
+	{
+		return !in_array(strtolower($operator), self::OPERATORS, true);
+	}
 
 }

@@ -56,7 +56,7 @@ class BulkIndexer implements IndexerInterface
 
 		$response = ElasticClient::bulk($bulkPayload->get());
 
-		if ($response['errors']) {
+		if ($response['errors'] ?? null) {
 			// Response included every record's status which is a lot to dig through when chunking by thousand
 			// Sort through the items to only log the failed items
 			foreach ($response['items'] as $item) {
