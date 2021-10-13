@@ -60,7 +60,7 @@ class BulkIndexer implements IndexerInterface
 			// Response included every record's status which is a lot to dig through when chunking by thousand
 			// Sort through the items to only log the failed items
 			foreach ($response['items'] as $item) {
-				if ($item['index']['error']) {
+				if ($item['index']['error'] ?? null) {
 					Log::error($item);
 				}
 			}
