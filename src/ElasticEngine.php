@@ -139,6 +139,10 @@ class ElasticEngine extends Engine
 				->setIfNotNull('body.from', $builder->offset)
 				->setIfNotNull('body.size', $builder->limit);
 
+			if (config('scout_elastic.track_total_hits', false)) {
+				$payload->set('track_total_hits', true);
+			}
+
 			foreach ($builder->wheres as $clause => $filters) {
 				$clauseKey = 'body.query.bool.filter.bool.' . $clause;
 

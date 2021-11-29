@@ -7,6 +7,7 @@ use Illuminate\Support\Arr;
 use ScoutElastic\Builders\FilterBuilder;
 use ScoutElastic\Builders\SearchBuilder;
 use Laravel\Scout\Searchable as SourceSearchable;
+use ScoutElastic\Interfaces\IndexConfiguratorInterface;
 
 trait Searchable
 {
@@ -28,10 +29,9 @@ trait Searchable
 	/**
 	 * Get the index configurator.
 	 *
-	 * @return IndexConfigurator
 	 * @throws Exception
 	 */
-	public function getIndexConfigurator()
+	public function getIndexConfigurator(): IndexConfiguratorInterface
 	{
 		static $indexConfigurator;
 

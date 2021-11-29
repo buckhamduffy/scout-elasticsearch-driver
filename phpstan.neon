@@ -8,4 +8,3 @@ parameters:
     ignoreErrors:
         - '#Call to an undefined static method ScoutElastic\\Facades\\ElasticClient#'
         - '#Function config not found#'
-        - '#Call to static method error\(\) on an unknown class Log#'

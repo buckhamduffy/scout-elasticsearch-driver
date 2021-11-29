@@ -59,13 +59,23 @@ class BulkIndexer implements IndexerInterface
 		if ($response['errors'] ?? null) {
 			// Response included every record's status which is a lot to dig through when chunking by thousand
 			// Sort through the items to only log the failed items
-			foreach ($response['items'] as $item) {
-				if ($item['index']['error'] ?? null) {
-					Log::error($item);
-				}
+			$errors = array_map(fn($row) => $row['index']['error'], array_filter($response['items'], fn(array $item) => array_key_exists('error', $item['index'])));
+
+			$exception = null;
+			foreach ($errors as $error) {
+				$exception = new Exception(
+					sprintf(
+						'[%s] %s - %s',
+						$indexConfigurator->getName(),
+						$error['type'],
+						$error['reason']
+					),
+					0,
+					$exception
+				);
 			}
 
-			throw new Exception('ElasticSearch responded with an error');
+			throw new Exception('ElasticSearch responded with an error', 0, $exception);
 		}
 
 	}
