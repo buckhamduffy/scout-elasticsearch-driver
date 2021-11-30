@@ -66,6 +66,8 @@ class FilterBuilder extends Builder
 	 */
 	public bool $withScores = false;
 
+	public bool $withTotalHits = false;
+
 	/**
 	 * List of operators that are allowed in ES
 	 */
@@ -421,11 +423,29 @@ class FilterBuilder extends Builder
 	/**
 	 * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-query.html Match query
 	 */
-	public function whereMatch(string $field, string $value, string $boolean = 'must'): self
+	public function whereMatch(string $field, string $value, string $boolean = 'must', array $parameters = []): self
 	{
+		$validParameters = [
+			'analyzer',
+			'auto_generate_synonyms_phrase_query',
+			'fuzziness',
+			'max_expansions',
+			'prefix_length',
+			'fuzzy_transpositions',
+			'fuzzy_rewrite',
+			'lenient',
+			'operator',
+			'minimum_should_match',
+			'zero_terms_query',
+		];
+
+		$this->validateParameters($parameters, $validParameters);
+
 		$this->wheres[$boolean][] = [
 			'match' => [
-				$field => $value,
+				$field => array_merge($parameters, [
+					'query' => $value,
+				]),
 			],
 		];
 
@@ -436,9 +456,9 @@ class FilterBuilder extends Builder
 	 * @param $field
 	 * @param $value
 	 */
-	public function orWhereMatch(string $field, string $value): self
+	public function orWhereMatch(string $field, string $value, array $parameters = []): self
 	{
-		return $this->whereMatch($field, $value, 'should');
+		return $this->whereMatch($field, $value, 'should', $parameters);
 	}
 
 	/**
@@ -869,6 +889,17 @@ class FilterBuilder extends Builder
 	}
 
 	/**
+	 * @param bool $withTotalHits
+	 * @return $this
+	 */
+	public function withTotalHits(bool $withTotalHits = true): self
+	{
+		$this->withTotalHits = $withTotalHits;
+
+		return $this;
+	}
+
+	/**
 	 * Get the count.
 	 */
 	public function count(): int
@@ -939,6 +970,15 @@ class FilterBuilder extends Builder
 	protected function invalidOperator(string $operator): bool
 	{
 		return !in_array(strtolower($operator), self::OPERATORS, true);
+	}
+
+	private function validateParameters(array $parameters, array $validParameters): void
+	{
+		foreach (array_keys($parameters) as $key) {
+			if (!in_array($key, $validParameters)) {
+				throw new InvalidArgumentException("Invalid parameter: ${key}");
+			}
+		}
 	}
 
 }

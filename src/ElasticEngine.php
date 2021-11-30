@@ -2,6 +2,7 @@
 
 namespace ScoutElastic;
 
+use ScoutElastic\Builders\FilterBuilder;
 use stdClass;
 use Laravel\Scout\Builder;
 use Illuminate\Support\Arr;
@@ -86,6 +87,7 @@ class ElasticEngine extends Engine
 
 	/**
 	 * Build the payload collection.
+     * @param Builder|FilterBuilder|SearchBuilder $builder
 	 */
 	public function buildSearchQueryPayloadCollection(
 		Builder $builder,
@@ -139,8 +141,8 @@ class ElasticEngine extends Engine
 				->setIfNotNull('body.from', $builder->offset)
 				->setIfNotNull('body.size', $builder->limit);
 
-			if (config('scout_elastic.track_total_hits', false)) {
-				$payload->set('track_total_hits', true);
+			if ($builder->withTotalHits) {
+				$payload->set('body.track_total_hits', true);
 			}
 
 			foreach ($builder->wheres as $clause => $filters) {
