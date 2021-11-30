@@ -2,7 +2,6 @@
 
 namespace ScoutElastic;
 
-use ScoutElastic\Builders\FilterBuilder;
 use stdClass;
 use Laravel\Scout\Builder;
 use Illuminate\Support\Arr;
@@ -13,6 +12,7 @@ use ScoutElastic\Payloads\TypePayload;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Artisan;
 use ScoutElastic\Facades\ElasticClient;
+use ScoutElastic\Builders\FilterBuilder;
 use ScoutElastic\Builders\SearchBuilder;
 use Illuminate\Database\Eloquent\Collection;
 use ScoutElastic\Interfaces\IndexerInterface;
@@ -87,7 +87,7 @@ class ElasticEngine extends Engine
 
 	/**
 	 * Build the payload collection.
-     * @param Builder|FilterBuilder|SearchBuilder $builder
+	 * @param Builder|FilterBuilder|SearchBuilder $builder
 	 */
 	public function buildSearchQueryPayloadCollection(
 		Builder $builder,

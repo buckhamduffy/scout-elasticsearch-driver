@@ -2,6 +2,7 @@
 
 namespace ScoutElastic\Builders;
 
+use Illuminate\Support\Facades\Log;
 use Closure;
 use Exception;
 use Laravel\Scout\Builder;
@@ -425,7 +426,8 @@ class FilterBuilder extends Builder
 	 */
 	public function whereMatch(string $field, string $value, string $boolean = 'must', array $parameters = []): self
 	{
-		$validParameters = [
+
+		$parameters = $this->validatedParameters($parameters, [
 			'analyzer',
 			'auto_generate_synonyms_phrase_query',
 			'fuzziness',
@@ -437,9 +439,7 @@ class FilterBuilder extends Builder
 			'operator',
 			'minimum_should_match',
 			'zero_terms_query',
-		];
-
-		$this->validateParameters($parameters, $validParameters);
+		]);
 
 		$this->wheres[$boolean][] = [
 			'match' => [
@@ -483,6 +483,44 @@ class FilterBuilder extends Builder
 	public function orWhereNotMatch(string $field, string $value): self
 	{
 		return $this->whereNotMatch($field, $value, 'should');
+	}
+
+	/**
+	 * Runs Match against multiple fields
+	 *
+	 * @param string[] $fields
+	 */
+	public function whereMultiMatch(array $fields, string $value, string $boolean = 'must', array $parameters = []): self
+	{
+		$parameters = $this->validatedParameters($parameters, [
+			'analyzer',
+			'auto_generate_synonyms_phrase_query',
+			'fuzziness',
+			'max_expansions',
+			'prefix_length',
+			'fuzzy_transpositions',
+			'fuzzy_rewrite',
+			'lenient',
+			'operator',
+			'minimum_should_match',
+			'zero_terms_query',
+			'type'
+		]);
+
+		foreach ($fields as $field) {
+			if (!is_string($field)) {
+				throw new Exception('Invalid field in multi match');
+			}
+		}
+
+		$this->wheres[$boolean][] = [
+			'multi_match' => array_merge($parameters, [
+				'fields' => $fields,
+				'query'  => $value,
+			]),
+		];
+
+		return $this;
 	}
 
 	/**
@@ -888,10 +926,6 @@ class FilterBuilder extends Builder
 		return $this;
 	}
 
-	/**
-	 * @param bool $withTotalHits
-	 * @return $this
-	 */
 	public function withTotalHits(bool $withTotalHits = true): self
 	{
 		$this->withTotalHits = $withTotalHits;
@@ -972,13 +1006,20 @@ class FilterBuilder extends Builder
 		return !in_array(strtolower($operator), self::OPERATORS, true);
 	}
 
-	private function validateParameters(array $parameters, array $validParameters): void
+	private function validatedParameters(array $parameters, array $validParameters): array
 	{
+		$validated = [];
 		foreach (array_keys($parameters) as $key) {
 			if (!in_array($key, $validParameters)) {
-				throw new InvalidArgumentException("Invalid parameter: ${key}");
+				Log::debug(sprintf('Invalid Elasticsearch parameter: %s', $key));
+
+				continue;
 			}
+
+			$validated[$key] = $parameters[$key];
 		}
+
+		return $validated;
 	}
 
 }
