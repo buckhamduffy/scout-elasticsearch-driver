@@ -6,6 +6,7 @@ use Illuminate\Support\Arr;
 
 class RawPayload
 {
+
 	/**
 	 * The payload.
 	 */
@@ -14,11 +15,9 @@ class RawPayload
 	/**
 	 * Set a value.
 	 *
-	 * @param  string  $key
-	 * @param  mixed  $value
-	 * @return $this
+	 * @param mixed $value
 	 */
-	public function set($key, $value)
+	public function set(string $key, $value): self
 	{
 		Arr::set($this->payload, $key, $value);
 
@@ -26,12 +25,23 @@ class RawPayload
 	}
 
 	/**
+	 * Unset a value.
+	 *
+	 * @param mixed $value
+	 */
+	public function unset($key): self
+	{
+		Arr::forget($this->payload, $key);
+
+		return $this;
+	}
+
+	/**
 	 * Set a value if it's not empty.
 	 *
-	 * @param  mixed  $value
-	 * @return $this
+	 * @param mixed $value
 	 */
-	public function setIfNotEmpty(string $key, $value)
+	public function setIfNotEmpty(string $key, $value): self
 	{
 		if (empty($value)) {
 			return $this;
@@ -43,10 +53,9 @@ class RawPayload
 	/**
 	 * Set a value if it's not null.
 	 *
-	 * @param  mixed  $value
-	 * @return $this
+	 * @param mixed $value
 	 */
-	public function setIfNotNull(string $key, $value)
+	public function setIfNotNull(string $key, $value): self
 	{
 		if (is_null($value)) {
 			return $this;
@@ -57,10 +66,8 @@ class RawPayload
 
 	/**
 	 * Checks that the payload key has a value.
-	 *
-	 * @return bool
 	 */
-	public function has(string $key)
+	public function has(string $key): bool
 	{
 		return Arr::has($this->payload, $key);
 	}
@@ -68,10 +75,9 @@ class RawPayload
 	/**
 	 * Add a value.
 	 *
-	 * @param  mixed  $value
-	 * @return $this
+	 * @param mixed $value
 	 */
-	public function add(string $key, $value)
+	public function add(string $key, $value): self
 	{
 		if (!is_null($key)) {
 			$currentValue = Arr::get($this->payload, $key, []);
@@ -91,10 +97,9 @@ class RawPayload
 	/**
 	 * Add a value if it's not empty.
 	 *
-	 * @param  mixed  $value
-	 * @return $this
+	 * @param mixed $value
 	 */
-	public function addIfNotEmpty(string $key, $value)
+	public function addIfNotEmpty(string $key, $value): self
 	{
 		if (empty($value)) {
 			return $this;
@@ -106,12 +111,13 @@ class RawPayload
 	/**
 	 * Get value.
 	 *
-	 * @param  string|null  $key
-	 * @param  mixed|null  $default
+	 * @param string|null $key
+	 * @param mixed|null $default
 	 * @return mixed
 	 */
 	public function get($key = null, $default = null)
 	{
 		return Arr::get($this->payload, $key, $default);
 	}
+
 }

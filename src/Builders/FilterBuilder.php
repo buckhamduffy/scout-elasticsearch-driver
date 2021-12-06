@@ -2,18 +2,18 @@
 
 namespace ScoutElastic\Builders;
 
-use Illuminate\Support\Facades\Log;
 use Closure;
 use Exception;
-use Laravel\Scout\Builder;
-use Illuminate\Support\Arr;
-use InvalidArgumentException;
-use ScoutElastic\ElasticEngine;
-use Illuminate\Support\Collection;
-use Illuminate\Database\Eloquent\Model;
-use ScoutElastic\Interfaces\AggregateRuleInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection as ModelCollection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
+use Laravel\Scout\Builder;
+use ScoutElastic\ElasticEngine;
+use ScoutElastic\Interfaces\AggregateRuleInterface;
 
 /**
  * @method ElasticEngine engine()
@@ -68,6 +68,8 @@ class FilterBuilder extends Builder
 	public bool $withScores = false;
 
 	public bool $withTotalHits = false;
+
+	public ?FunctionScoreBuilder $functionScoreBuilder = null;
 
 	/**
 	 * List of operators that are allowed in ES
@@ -207,8 +209,7 @@ class FilterBuilder extends Builder
 		$column,
 		string $operator = null,
 		string $value = null
-	): \ScoutElastic\Builders\FilterBuilder
-	{
+	): \ScoutElastic\Builders\FilterBuilder {
 		[$value, $operator] = $this->prepareValueAndOperator(
 			$value,
 			$operator,
@@ -504,7 +505,7 @@ class FilterBuilder extends Builder
 			'operator',
 			'minimum_should_match',
 			'zero_terms_query',
-			'type'
+			'type',
 		]);
 
 		foreach ($fields as $field) {
@@ -642,8 +643,7 @@ class FilterBuilder extends Builder
 		array $shape,
 		string $relation = 'INTERSECTS',
 		string $boolean = 'must'
-	): self
-	{
+	): self {
 		$this->wheres[$boolean][] = [
 			'geo_shape' => [
 				$field => [
@@ -961,9 +961,21 @@ class FilterBuilder extends Builder
 	 */
 	public function onlyTrashed()
 	{
-		return tap($this->withTrashed(), function(): void {
+		return tap($this->withTrashed(), function (): void {
 			$this->wheres['must'][] = ['term' => ['__soft_deleted' => 1]];
 		});
+	}
+
+	/**
+	 * Adds function score to the query
+	 */
+	public function withFunctionScore(callable $callback): self
+	{
+		$builder = new FunctionScoreBuilder();
+		$callback($builder);
+		$this->functionScoreBuilder = $builder;
+
+		return $this;
 	}
 
 

@@ -2,20 +2,20 @@
 
 namespace ScoutElastic;
 
-use stdClass;
-use Laravel\Scout\Builder;
-use Illuminate\Support\Arr;
-use Laravel\Scout\Engines\Engine;
-use ScoutElastic\Payloads\RawPayload;
-use Illuminate\Support\LazyCollection;
-use ScoutElastic\Payloads\TypePayload;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Artisan;
-use ScoutElastic\Facades\ElasticClient;
+use Illuminate\Support\LazyCollection;
+use Laravel\Scout\Builder;
+use Laravel\Scout\Engines\Engine;
 use ScoutElastic\Builders\FilterBuilder;
 use ScoutElastic\Builders\SearchBuilder;
-use Illuminate\Database\Eloquent\Collection;
+use ScoutElastic\Facades\ElasticClient;
 use ScoutElastic\Interfaces\IndexerInterface;
+use ScoutElastic\Payloads\RawPayload;
+use ScoutElastic\Payloads\TypePayload;
+use stdClass;
 
 class ElasticEngine extends Engine
 {
@@ -56,7 +56,7 @@ class ElasticEngine extends Engine
 		if ($this->updateMapping) {
 			$self = $this;
 
-			$models->each(function($model) use ($self) {
+			$models->each(function ($model) use ($self) {
 				$modelClass = get_class($model);
 
 				if (in_array($modelClass, $self::$updatedMappings)) {
@@ -92,8 +92,7 @@ class ElasticEngine extends Engine
 	public function buildSearchQueryPayloadCollection(
 		Builder $builder,
 		array $options = []
-	): \Illuminate\Support\Collection
-	{
+	): \Illuminate\Support\Collection {
 		$payloadCollection = collect();
 
 		if ($builder instanceof SearchBuilder) {
@@ -128,7 +127,7 @@ class ElasticEngine extends Engine
 			$payloadCollection->push($payload);
 		}
 
-		return $payloadCollection->map(function(TypePayload $payload) use ($builder, $options) {
+		return $payloadCollection->map(function (TypePayload $payload) use ($builder, $options) {
 
 			$payload
 				->setIfNotEmpty('body._source', $builder->select)
@@ -156,6 +155,14 @@ class ElasticEngine extends Engine
 				$payload->setIfNotEmpty($clauseKey, $clauseValue);
 			}
 
+			if ($builder->functionScoreBuilder !== null) {
+				$functionPayload = $builder->functionScoreBuilder->buildPayload();
+				$functionPayload->set('query', $payload->get('body.query'));
+				$payload->unset('body.query');
+				$payload->set('body.query.function_score', $functionPayload->get());
+			}
+			
+
 			return $payload->get();
 		});
 	}
@@ -180,9 +187,8 @@ class ElasticEngine extends Engine
 
 		$this
 			->buildSearchQueryPayloadCollection($builder, $options)
-			->each(function($payload) use (&$results) {
+			->each(function ($payload) use (&$results) {
 				$results = ElasticClient::search($payload);
-
 				$results['_payload'] = $payload;
 
 				if ($this->getTotalCount($results) > 0) {
@@ -248,7 +254,7 @@ class ElasticEngine extends Engine
 
 		$this
 			->buildSearchQueryPayloadCollection($builder, ['highlight' => false])
-			->each(function($payload) use (&$count) {
+			->each(function ($payload) use (&$count) {
 				$result = ElasticClient::count($payload);
 
 				$count = $result['count'];
@@ -316,7 +322,7 @@ class ElasticEngine extends Engine
 		$withScores = $builder->withScores;
 
 		$values = Collection::make($results['hits']['hits'])
-			->map(function($hit) use ($models, $withScores) {
+			->map(function ($hit) use ($models, $withScores) {
 				$id = $hit['_id'];
 
 				if (isset($models[$id])) {
@@ -396,7 +402,7 @@ class ElasticEngine extends Engine
 		$withScores = $builder->withScores;
 
 		$values = LazyCollection::make($results['hits']['hits'])
-			->map(function($hit) use ($models, $withScores) {
+			->map(function ($hit) use ($models, $withScores) {
 				$id = $hit['_id'];
 
 				if (isset($models[$id])) {
