@@ -17,7 +17,7 @@ class RawPayload
 	 *
 	 * @param mixed $value
 	 */
-	public function set(string $key, $value): self
+	public function set(string $key, $value)
 	{
 		Arr::set($this->payload, $key, $value);
 
