@@ -11,7 +11,7 @@ trait HasProtectedKeys
 	 * @param mixed $value
 	 * @return $this
 	 */
-	public function set(string $key, $value): static
+	public function set(string $key, $value): self
 	{
 		if (in_array($key, $this->protectedKeys)) {
 			return $this;
