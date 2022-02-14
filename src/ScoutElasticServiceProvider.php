@@ -16,6 +16,7 @@ use ScoutElastic\Console\ElasticIndexCreateCommand;
 use ScoutElastic\Console\ElasticIndexUpdateCommand;
 use ScoutElastic\Console\ElasticMigrateModelCommand;
 use ScoutElastic\Console\ElasticUpdateMappingCommand;
+use ScoutElastic\Console\ElasticCompareModelCommand;
 use ScoutElastic\Console\IndexConfiguratorMakeCommand;
 
 class ScoutElasticServiceProvider extends ServiceProvider
@@ -44,6 +45,7 @@ class ScoutElasticServiceProvider extends ServiceProvider
 			ElasticIndexDropCommand::class,
 			ElasticUpdateMappingCommand::class,
 			ElasticMigrateModelCommand::class,
+            ElasticCompareModelCommand::class,
 		]);
 
 		$this
