@@ -207,8 +207,8 @@ class FilterBuilder extends Builder
 	 */
 	public function orWhere(
 		$column,
-		string $operator = null,
-		string $value = null
+		?string $operator = null,
+		?string $value = null
 	): \ScoutElastic\Builders\FilterBuilder {
 		[$value, $operator] = $this->prepareValueAndOperator(
 			$value,
@@ -1033,7 +1033,7 @@ class FilterBuilder extends Builder
 	 *
 	 * @param mixed $value
 	 */
-	protected function invalidOperatorAndValue(string $operator, $value): bool
+	protected function invalidOperatorAndValue(?string $operator, $value): bool
 	{
 		return is_null($value) && in_array($operator, self::OPERATORS) && !in_array($operator, ['=', '!=', '<>']);
 	}
