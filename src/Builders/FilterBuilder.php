@@ -462,6 +462,34 @@ class FilterBuilder extends Builder
 		return $this->whereMatch($field, $value, 'should', $parameters);
 	}
 
+    /**
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-wildcard-query.html
+     */
+	public function whereWildcard(string $field, string $value, string $boolean = 'must', array $parameters = []): self
+	{
+
+		$parameters = $this->validatedParameters($parameters, [
+            'boost',
+            'case_insensitive',
+            'rewrite',
+		]);
+
+		$this->wheres[$boolean][] = [
+			'wildcard' => [
+				$field => array_merge($parameters, [
+					'value' => $value,
+				]),
+			],
+		];
+
+		return $this;
+	}
+
+	public function orWhereWildcard(string $field, string $value, array $parameters = []): self
+	{
+		return $this->whereWildcard($field, $value, 'should', $parameters);
+	}
+
 	/**
 	 * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-query.html Match query
 	 */
