@@ -14,13 +14,13 @@ class ElasticUpdateMappingCommand extends Command
 	use RequiresModelArgument;
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 * @var string
 	 */
 	protected $name = 'elastic:update-mapping';
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 * @var string
 	 */
 	protected $description = 'Update a model mapping';

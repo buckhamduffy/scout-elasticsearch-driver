@@ -4,7 +4,6 @@ namespace ScoutElastic\Interfaces;
 
 interface IndexConfiguratorInterface
 {
-
 	/**
 	 * @return mixed[]
 	 * @deprecated
@@ -18,10 +17,8 @@ interface IndexConfiguratorInterface
 	 */
 	public function getSettings(): array;
 
-
 	/**
 	 * Get the name.
 	 */
 	public function getName(): string;
-
 }

@@ -14,9 +14,9 @@ class SearchBuilder extends FilterBuilder
 	/**
 	 * SearchBuilder constructor.
 	 *
-	 * @param  string  $query
-	 * @param  callable|null  $callback
-	 * @param  bool  $softDelete
+	 * @param  string        $query
+	 * @param  null|callable $callback
+	 * @param  bool          $softDelete
 	 * @return void
 	 */
 	public function __construct(Model $model, $query, $callback = null, $softDelete = false)
@@ -29,7 +29,7 @@ class SearchBuilder extends FilterBuilder
 	/**
 	 * Add a rule.
 	 *
-	 * @param  string|callable  $rule Search rule class name or function
+	 * @param callable|string $rule Search rule class name or function
 	 */
 	public function rule($rule): self
 	{

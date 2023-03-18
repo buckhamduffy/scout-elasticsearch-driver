@@ -14,20 +14,18 @@ use ScoutElastic\Console\ElasticIndexDropCommand;
 use ScoutElastic\Console\AggregateRuleMakeCommand;
 use ScoutElastic\Console\ElasticIndexCreateCommand;
 use ScoutElastic\Console\ElasticIndexUpdateCommand;
+use ScoutElastic\Console\ElasticCompareModelCommand;
 use ScoutElastic\Console\ElasticMigrateModelCommand;
 use ScoutElastic\Console\ElasticUpdateMappingCommand;
-use ScoutElastic\Console\ElasticCompareModelCommand;
 use ScoutElastic\Console\IndexConfiguratorMakeCommand;
 
 class ScoutElasticServiceProvider extends ServiceProvider
 {
-
 	/**
 	 * Boot the service provider.
 	 *
-	 * @return mixed
 	 */
-	public function boot()
+	public function boot(): void
 	{
 		$this->publishes([
 			__DIR__ . '/../config/scout_elastic.php' => $this->app->configPath('scout_elastic.php'),
@@ -45,7 +43,7 @@ class ScoutElasticServiceProvider extends ServiceProvider
 			ElasticIndexDropCommand::class,
 			ElasticUpdateMappingCommand::class,
 			ElasticMigrateModelCommand::class,
-            ElasticCompareModelCommand::class,
+			ElasticCompareModelCommand::class,
 		]);
 
 		$this
@@ -80,5 +78,4 @@ class ScoutElasticServiceProvider extends ServiceProvider
 				return ClientBuilder::fromConfig($config);
 			});
 	}
-
 }

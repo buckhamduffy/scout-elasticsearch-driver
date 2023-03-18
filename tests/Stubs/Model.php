@@ -2,15 +2,15 @@
 
 namespace ScoutElastic\Tests\Stubs;
 
-use Illuminate\Database\Eloquent\SoftDeletes;
 use ScoutElastic\Searchable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Model extends \Illuminate\Database\Eloquent\Model
 {
-    use Searchable, SoftDeletes;
+	use Searchable, SoftDeletes;
 
-    public static function bootSearchable()
-    {
-        // do nothing
-    }
+	public static function bootSearchable(): void
+	{
+		// do nothing
+	}
 }

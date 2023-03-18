@@ -6,25 +6,25 @@ use ScoutElastic\SearchRule as ElasticSearchRule;
 
 class SearchRule extends ElasticSearchRule
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function buildHighlightPayload(): ?array
-    {
-        $highlight = null;
+	/**
+	 * {@inheritDoc}
+	 */
+	public function buildHighlightPayload(): ?array
+	{
+		$highlight = null;
 
-        foreach ($this->builder->select as $field) {
-            if (empty($highlight)) {
-                $highlight = [
-                    'fields' => [],
-                ];
-            }
+		foreach ($this->builder->select as $field) {
+			if (empty($highlight)) {
+				$highlight = [
+					'fields' => [],
+				];
+			}
 
-            $highlight['fields'][$field] = [
-                'type' => 'plain',
-            ];
-        }
+			$highlight['fields'][$field] = [
+				'type' => 'plain',
+			];
+		}
 
-        return $highlight;
-    }
+		return $highlight;
+	}
 }

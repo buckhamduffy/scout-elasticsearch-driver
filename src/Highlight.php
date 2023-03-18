@@ -13,7 +13,7 @@ class Highlight
 	 * Highlight constructor.
 	 *
 	 * @return void
-	 * @param mixed[] $highlight
+	 * @param  mixed[] $highlight
 	 */
 	public function __construct(array $highlight)
 	{
@@ -23,8 +23,8 @@ class Highlight
 	/**
 	 * Get a value.
 	 *
-	 * @param  string  $key
-	 * @return mixed|string|null
+	 * @param  string            $key
+	 * @return null|mixed|string
 	 */
 	public function __get($key)
 	{

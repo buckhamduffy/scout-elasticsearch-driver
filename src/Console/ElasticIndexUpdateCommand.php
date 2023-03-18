@@ -16,13 +16,13 @@ class ElasticIndexUpdateCommand extends Command
 	use RequiresIndexConfiguratorArgument;
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 * @var string
 	 */
 	protected $name = 'elastic:update-index';
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 * @var string
 	 */
 	protected $description = 'Update settings and mappings of an Elasticsearch index';

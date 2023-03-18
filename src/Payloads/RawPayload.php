@@ -6,7 +6,6 @@ use Illuminate\Support\Arr;
 
 class RawPayload
 {
-
 	/**
 	 * The payload.
 	 */
@@ -15,7 +14,6 @@ class RawPayload
 	/**
 	 * Set a value.
 	 *
-	 * @param mixed $value
 	 */
 	public function set(string $key, $value)
 	{
@@ -27,7 +25,6 @@ class RawPayload
 	/**
 	 * Unset a value.
 	 *
-	 * @param mixed $value
 	 */
 	public function unset($key): self
 	{
@@ -39,7 +36,6 @@ class RawPayload
 	/**
 	 * Set a value if it's not empty.
 	 *
-	 * @param mixed $value
 	 */
 	public function setIfNotEmpty(string $key, $value): self
 	{
@@ -53,7 +49,6 @@ class RawPayload
 	/**
 	 * Set a value if it's not null.
 	 *
-	 * @param mixed $value
 	 */
 	public function setIfNotNull(string $key, $value): self
 	{
@@ -75,7 +70,6 @@ class RawPayload
 	/**
 	 * Add a value.
 	 *
-	 * @param mixed $value
 	 */
 	public function add(string $key, $value): self
 	{
@@ -97,7 +91,6 @@ class RawPayload
 	/**
 	 * Add a value if it's not empty.
 	 *
-	 * @param mixed $value
 	 */
 	public function addIfNotEmpty(string $key, $value): self
 	{
@@ -111,13 +104,11 @@ class RawPayload
 	/**
 	 * Get value.
 	 *
-	 * @param string|null $key
-	 * @param mixed|null $default
-	 * @return mixed
+	 * @param null|string $key
+	 * @param null|mixed  $default
 	 */
 	public function get($key = null, $default = null)
 	{
 		return Arr::get($this->payload, $key, $default);
 	}
-
 }

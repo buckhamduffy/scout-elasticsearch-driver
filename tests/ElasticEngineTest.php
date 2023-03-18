@@ -2,538 +2,536 @@
 
 namespace ScoutElastic\Tests;
 
-use Illuminate\Database\Eloquent\Collection;
-use ScoutElastic\Builders\FilterBuilder;
-use ScoutElastic\Builders\SearchBuilder;
+use stdClass;
 use ScoutElastic\ElasticEngine;
 use ScoutElastic\Facades\ElasticClient;
-use ScoutElastic\Tests\Dependencies\Model;
+use ScoutElastic\Builders\FilterBuilder;
+use ScoutElastic\Builders\SearchBuilder;
 use ScoutElastic\Tests\Stubs\SearchRule;
-use stdClass;
+use ScoutElastic\Tests\Dependencies\Model;
+use Illuminate\Database\Eloquent\Collection;
 
 class ElasticEngineTest extends AbstractTestCase
 {
-    use Model;
+	use Model;
 
-    /**
-     * @var ElasticEngine
-     */
-    private $engine;
+	/**
+	 * @var ElasticEngine
+	 */
+	private $engine;
 
-    protected function setUp(): void
-    {
-        $this->engine = $this
-            ->getMockBuilder(ElasticEngine::class)
-            ->disableOriginalConstructor()
-            ->setMethods(null)
-            ->getMock();
-    }
+	protected function setUp(): void
+	{
+		$this->engine = $this
+			->getMockBuilder(ElasticEngine::class)
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+	}
 
-    public function testBuildSearchQueryPayloadCollection()
-    {
-        $model = $this->mockModel();
+	public function testBuildSearchQueryPayloadCollection(): void
+	{
+		$model = $this->mockModel();
 
-        $searchBuilder = (new SearchBuilder($model, 'foo'))
-            ->rule(SearchRule::class)
-            ->rule(function (SearchBuilder $searchBuilder) {
-                return [
-                    'must' => [
-                        'match' => [
-                            'bar' => $searchBuilder->query,
-                        ],
-                    ],
-                ];
-            })
-            ->select('title')
-            ->select(['price', 'color'])
-            ->where('id', '>', 20)
-            ->orderBy('id', 'asc')
-            ->collapse('brand')
-            ->take(10)
-            ->from(100);
+		$searchBuilder = (new SearchBuilder($model, 'foo'))
+			->rule(SearchRule::class)
+			->rule(function(SearchBuilder $searchBuilder) {
+				return [
+					'must' => [
+						'match' => [
+							'bar' => $searchBuilder->query,
+						],
+					],
+				];
+			})
+			->select('title')
+			->select(['price', 'color'])
+			->where('id', '>', 20)
+			->orderBy('id', 'asc')
+			->collapse('brand')
+			->take(10)
+			->from(100);
 
-        $payloadCollection = $this
-            ->engine
-            ->buildSearchQueryPayloadCollection($searchBuilder);
+		$payloadCollection = $this
+			->engine
+			->buildSearchQueryPayloadCollection($searchBuilder);
 
-        $this->assertEquals(
-            [
-                [
-                    'index' => 'test',
-                    'type' => 'test',
-                    'body' => [
-                        '_source' => [
-                            'title',
-                            'price',
-                            'color',
-                        ],
-                        'query' => [
-                            'bool' => [
-                                'must' => [
-                                    'query_string' => [
-                                        'query' => 'foo',
-                                    ],
-                                ],
-                                'filter' => [
-                                    'bool' => [
-                                        'must' => [
-                                            [
-                                                'range' => [
-                                                    'id' => [
-                                                        'gt' => 20,
-                                                    ],
-                                                ],
-                                            ],
-                                        ],
-                                    ],
-                                ],
-                            ],
-                        ],
-                        'highlight' => [
-                            'fields' => [
-                                'title' => [
-                                    'type' => 'plain',
-                                ],
-                                'price' => [
-                                    'type' => 'plain',
-                                ],
-                                'color' => [
-                                    'type' => 'plain',
-                                ],
-                            ],
-                        ],
-                        'collapse' => [
-                            'field' => 'brand',
-                        ],
-                        'sort' => [
-                            [
-                                'id' => 'asc',
-                            ],
-                        ],
-                        'from' => 100,
-                        'size' => 10,
-                    ],
-                ],
-                [
-                    'index' => 'test',
-                    'type' => 'test',
-                    'body' => [
-                        '_source' => [
-                            'title',
-                            'price',
-                            'color',
-                        ],
-                        'query' => [
-                            'bool' => [
-                                'must' => [
-                                    'match' => [
-                                        'bar' => 'foo',
-                                    ],
-                                ],
-                                'filter' => [
-                                    'bool' => [
-                                        'must' => [
-                                            [
-                                                'range' => [
-                                                    'id' => [
-                                                        'gt' => 20,
-                                                    ],
-                                                ],
-                                            ],
-                                        ],
-                                    ],
-                                ],
-                            ],
-                        ],
-                        'collapse' => [
-                            'field' => 'brand',
-                        ],
-                        'sort' => [
-                            [
-                                'id' => 'asc',
-                            ],
-                        ],
-                        'from' => 100,
-                        'size' => 10,
-                    ],
-                ],
-            ],
-            $payloadCollection->all()
-        );
-    }
+		$this->assertEquals(
+			[
+				[
+					'index' => 'test',
+					'type'  => 'test',
+					'body'  => [
+						'_source' => [
+							'title',
+							'price',
+							'color',
+						],
+						'query' => [
+							'bool' => [
+								'must' => [
+									'query_string' => [
+										'query' => 'foo',
+									],
+								],
+								'filter' => [
+									'bool' => [
+										'must' => [
+											[
+												'range' => [
+													'id' => [
+														'gt' => 20,
+													],
+												],
+											],
+										],
+									],
+								],
+							],
+						],
+						'highlight' => [
+							'fields' => [
+								'title' => [
+									'type' => 'plain',
+								],
+								'price' => [
+									'type' => 'plain',
+								],
+								'color' => [
+									'type' => 'plain',
+								],
+							],
+						],
+						'collapse' => [
+							'field' => 'brand',
+						],
+						'sort' => [
+							[
+								'id' => 'asc',
+							],
+						],
+						'from' => 100,
+						'size' => 10,
+					],
+				],
+				[
+					'index' => 'test',
+					'type'  => 'test',
+					'body'  => [
+						'_source' => [
+							'title',
+							'price',
+							'color',
+						],
+						'query' => [
+							'bool' => [
+								'must' => [
+									'match' => [
+										'bar' => 'foo',
+									],
+								],
+								'filter' => [
+									'bool' => [
+										'must' => [
+											[
+												'range' => [
+													'id' => [
+														'gt' => 20,
+													],
+												],
+											],
+										],
+									],
+								],
+							],
+						],
+						'collapse' => [
+							'field' => 'brand',
+						],
+						'sort' => [
+							[
+								'id' => 'asc',
+							],
+						],
+						'from' => 100,
+						'size' => 10,
+					],
+				],
+			],
+			$payloadCollection->all()
+		);
+	}
 
-    public function testBuildFilterQueryPayloadCollection()
-    {
-        $model = $this->mockModel();
+	public function testBuildFilterQueryPayloadCollection(): void
+	{
+		$model = $this->mockModel();
 
-        $filterBuilder = (new FilterBuilder($model))
-            ->where('foo', 'bar')
-            ->orderBy('foo', 'desc')
-            ->take(1)
-            ->from(30);
+		$filterBuilder = (new FilterBuilder($model))
+			->where('foo', 'bar')
+			->orderBy('foo', 'desc')
+			->take(1)
+			->from(30);
 
-        $payloadCollection = $this
-            ->engine
-            ->buildSearchQueryPayloadCollection($filterBuilder);
+		$payloadCollection = $this
+			->engine
+			->buildSearchQueryPayloadCollection($filterBuilder);
 
-        $this->assertEquals(
-            [
-                [
-                    'index' => 'test',
-                    'type' => 'test',
-                    'body' => [
-                        'query' => [
-                            'bool' => [
-                                'must' => [
-                                    'match_all' => new stdClass,
-                                ],
-                                'filter' => [
-                                    'bool' => [
-                                        'must' => [
-                                            [
-                                                'term' => [
-                                                    'foo' => 'bar',
-                                                ],
-                                            ],
-                                        ],
-                                    ],
-                                ],
-                            ],
-                        ],
-                        'sort' => [
-                            [
-                                'foo' => 'desc',
-                            ],
-                        ],
-                        'from' => 30,
-                        'size' => 1,
-                    ],
-                ],
-            ],
-            $payloadCollection->all()
-        );
-    }
+		$this->assertEquals(
+			[
+				[
+					'index' => 'test',
+					'type'  => 'test',
+					'body'  => [
+						'query' => [
+							'bool' => [
+								'must' => [
+									'match_all' => new stdClass(),
+								],
+								'filter' => [
+									'bool' => [
+										'must' => [
+											[
+												'term' => [
+													'foo' => 'bar',
+												],
+											],
+										],
+									],
+								],
+							],
+						],
+						'sort' => [
+							[
+								'foo' => 'desc',
+							],
+						],
+						'from' => 30,
+						'size' => 1,
+					],
+				],
+			],
+			$payloadCollection->all()
+		);
+	}
 
-    public function testCount()
-    {
-        ElasticClient
-            ::shouldReceive('count')
-            ->once()
-            ->with([
-                'index' => 'test',
-                'type' => 'test',
-                'body' => [
-                    '_source' => [
-                        'title',
-                    ],
-                    'query' => [
-                        'bool' => [
-                            'must' => [
-                                'query_string' => [
-                                    'query' => 'foo',
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ])
-            ->andReturn([
-                'count' => 1,
-            ]);
+	public function testCount(): void
+	{
+		ElasticClient::shouldReceive('count')
+			->once()
+			->with([
+				'index' => 'test',
+				'type'  => 'test',
+				'body'  => [
+					'_source' => [
+						'title',
+					],
+					'query' => [
+						'bool' => [
+							'must' => [
+								'query_string' => [
+									'query' => 'foo',
+								],
+							],
+						],
+					],
+				],
+			])
+			->andReturn([
+				'count' => 1,
+			]);
 
-        $model = $this->mockModel();
+		$model = $this->mockModel();
 
-        $searchBuilder = (new SearchBuilder($model, 'foo'))
-            ->rule(SearchRule::class)
-            ->select('title');
+		$searchBuilder = (new SearchBuilder($model, 'foo'))
+			->rule(SearchRule::class)
+			->select('title');
 
-        $this
-            ->engine
-            ->count($searchBuilder);
+		$this
+			->engine
+			->count($searchBuilder);
 
-        $this->addToAssertionCount(1);
-    }
+		$this->addToAssertionCount(1);
+	}
 
-    public function testSearchRaw()
-    {
-        ElasticClient
-            ::shouldReceive('search')
-            ->once()
-            ->with([
-                'index' => 'test',
-                'type' => 'test',
-                'body' => [
-                    'query' => [
-                        'match' => [
-                            'foo' => 'bar',
-                        ],
-                    ],
-                ],
-            ]);
+	public function testSearchRaw(): void
+	{
+		ElasticClient::shouldReceive('search')
+			->once()
+			->with([
+				'index' => 'test',
+				'type'  => 'test',
+				'body'  => [
+					'query' => [
+						'match' => [
+							'foo' => 'bar',
+						],
+					],
+				],
+			]);
 
-        $model = $this->mockModel();
+		$model = $this->mockModel();
 
-        $query = [
-            'query' => [
-                'match' => [
-                    'foo' => 'bar',
-                ],
-            ],
-        ];
+		$query = [
+			'query' => [
+				'match' => [
+					'foo' => 'bar',
+				],
+			],
+		];
 
-        $this
-            ->engine
-            ->searchRaw(
-                $model,
-                $query
-            );
+		$this
+			->engine
+			->searchRaw(
+				$model,
+				$query
+			);
 
-        $this->addToAssertionCount(1);
-    }
+		$this->addToAssertionCount(1);
+	}
 
-    public function testMapIds()
-    {
-        $results = [
-            'hits' => [
-                'hits' => [
-                    ['_id' => 1],
-                    ['_id' => 2],
-                ],
-            ],
-        ];
+	public function testMapIds(): void
+	{
+		$results = [
+			'hits' => [
+				'hits' => [
+					['_id' => 1],
+					['_id' => 2],
+				],
+			],
+		];
 
-        $this->assertSame(
-            [1, 2],
-            $this->engine->mapIds($results)->all()
-        );
-    }
+		$this->assertSame(
+			[1, 2],
+			$this->engine->mapIds($results)->all()
+		);
+	}
 
-    public function testMapWithoutTrashed()
-    {
-        $this->markTestSkipped();
+	public function testMapWithoutTrashed(): void
+	{
+		$this->markTestSkipped();
 
-        $results = [
-            'hits' => [
-                'total' => 2,
-                'hits' => [
-                    [
-                        '_id' => 1,
-                        '_source' => [
-                            'title' => 'foo',
-                        ],
-                    ],
-                    [
-                        '_id' => 2,
-                        '_source' => [
-                            'title' => 'bar',
-                        ],
-                    ],
-                ],
-            ],
-        ];
+		$results = [
+			'hits' => [
+				'total' => 2,
+				'hits'  => [
+					[
+						'_id'     => 1,
+						'_source' => [
+							'title' => 'foo',
+						],
+					],
+					[
+						'_id'     => 2,
+						'_source' => [
+							'title' => 'bar',
+						],
+					],
+				],
+			],
+		];
 
-        $model = $this->mockModel([
-            'key' => 2,
-            'methods' => [
-                'usesSoftDelete',
-                'newQuery',
-                'whereIn',
-                'get',
-                'keyBy',
-            ],
-        ]);
+		$model = $this->mockModel([
+			'key'     => 2,
+			'methods' => [
+				'usesSoftDelete',
+				'newQuery',
+				'whereIn',
+				'get',
+				'keyBy',
+			],
+		]);
 
-        $model
-            ->method('usesSoftDelete')
-            ->willReturn(false);
+		$model
+			->method('usesSoftDelete')
+			->willReturn(false);
 
-        $model
-            ->method('newQuery')
-            ->willReturn($model);
+		$model
+			->method('newQuery')
+			->willReturn($model);
 
-        $model
-            ->method('whereIn')
-            ->willReturn($model);
+		$model
+			->method('whereIn')
+			->willReturn($model);
 
-        $model
-            ->method('get')
-            ->willReturn($model);
+		$model
+			->method('get')
+			->willReturn($model);
 
-        $model
-            ->method('keyBy')
-            ->willReturn([
-                2 => $model,
-            ]);
+		$model
+			->method('keyBy')
+			->willReturn([
+				2 => $model,
+			]);
 
-        $builder = $this
-            ->getMockBuilder(FilterBuilder::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+		$builder = $this
+			->getMockBuilder(FilterBuilder::class)
+			->disableOriginalConstructor()
+			->getMock();
 
-        $this->assertSame(
-            [$model],
-            $this->engine->map($builder, $results, $model)->all()
-        );
-    }
+		$this->assertSame(
+			[$model],
+			$this->engine->map($builder, $results, $model)->all()
+		);
+	}
 
-    public function testMapWithTrashed()
-    {
-        $this->markTestSkipped();
+	public function testMapWithTrashed(): void
+	{
+		$this->markTestSkipped();
 
-        $results = [
-            'hits' => [
-                'total' => 2,
-                'hits' => [
-                    [
-                        '_id' => 1,
-                        '_source' => [
-                            'title' => 'foo',
-                        ],
-                    ],
-                    [
-                        '_id' => 2,
-                        '_source' => [
-                            'title' => 'bar',
-                        ],
-                    ],
-                ],
-            ],
-        ];
+		$results = [
+			'hits' => [
+				'total' => 2,
+				'hits'  => [
+					[
+						'_id'     => 1,
+						'_source' => [
+							'title' => 'foo',
+						],
+					],
+					[
+						'_id'     => 2,
+						'_source' => [
+							'title' => 'bar',
+						],
+					],
+				],
+			],
+		];
 
-        $model = $this->mockModel([
-            'key' => 2,
-            'methods' => [
-                'usesSoftDelete',
-                'withTrashed',
-                'whereIn',
-                'get',
-                'keyBy',
-            ],
-        ]);
+		$model = $this->mockModel([
+			'key'     => 2,
+			'methods' => [
+				'usesSoftDelete',
+				'withTrashed',
+				'whereIn',
+				'get',
+				'keyBy',
+			],
+		]);
 
-        $model
-            ->method('usesSoftDelete')
-            ->willReturn(true);
+		$model
+			->method('usesSoftDelete')
+			->willReturn(true);
 
-        $model
-            ->method('withTrashed')
-            ->willReturn($model);
+		$model
+			->method('withTrashed')
+			->willReturn($model);
 
-        $model
-            ->method('whereIn')
-            ->willReturn($model);
+		$model
+			->method('whereIn')
+			->willReturn($model);
 
-        $model
-            ->method('get')
-            ->willReturn($model);
+		$model
+			->method('get')
+			->willReturn($model);
 
-        $model
-            ->method('keyBy')
-            ->willReturn([
-                2 => $model,
-            ]);
+		$model
+			->method('keyBy')
+			->willReturn([
+				2 => $model,
+			]);
 
-        $builder = $this
-            ->getMockBuilder(FilterBuilder::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+		$builder = $this
+			->getMockBuilder(FilterBuilder::class)
+			->disableOriginalConstructor()
+			->getMock();
 
-        $this->assertSame(
-            [$model],
-            $this->engine->map($builder, $results, $model)->all()
-        );
-    }
+		$this->assertSame(
+			[$model],
+			$this->engine->map($builder, $results, $model)->all()
+		);
+	}
 
-    public function testMapReturnDatabaseCollection()
-    {
-        $this->markTestSkipped();
+	public function testMapReturnDatabaseCollection(): void
+	{
+		$this->markTestSkipped();
 
-        $results = [
-            'hits' => [
-                'total' => 2,
-                'hits' => [
-                    [
-                        '_id' => 1,
-                        '_source' => [
-                            'title' => 'foo',
-                        ],
-                    ],
-                    [
-                        '_id' => 2,
-                        '_source' => [
-                            'title' => 'bar',
-                        ],
-                    ],
-                ],
-            ],
-        ];
+		$results = [
+			'hits' => [
+				'total' => 2,
+				'hits'  => [
+					[
+						'_id'     => 1,
+						'_source' => [
+							'title' => 'foo',
+						],
+					],
+					[
+						'_id'     => 2,
+						'_source' => [
+							'title' => 'bar',
+						],
+					],
+				],
+			],
+		];
 
-        $model = $this->mockModel([
-            'key' => 2,
-            'methods' => [
-                'usesSoftDelete',
-                'newQuery',
-                'whereIn',
-                'get',
-                'keyBy',
-            ],
-        ]);
+		$model = $this->mockModel([
+			'key'     => 2,
+			'methods' => [
+				'usesSoftDelete',
+				'newQuery',
+				'whereIn',
+				'get',
+				'keyBy',
+			],
+		]);
 
-        $model
-            ->method('usesSoftDelete')
-            ->willReturn(false);
+		$model
+			->method('usesSoftDelete')
+			->willReturn(false);
 
-        $model
-            ->method('newQuery')
-            ->willReturn($model);
+		$model
+			->method('newQuery')
+			->willReturn($model);
 
-        $model
-            ->method('whereIn')
-            ->willReturn($model);
+		$model
+			->method('whereIn')
+			->willReturn($model);
 
-        $model
-            ->method('get')
-            ->willReturn($model);
+		$model
+			->method('get')
+			->willReturn($model);
 
-        // The mocked `newQuery` chain will return an array of a single model (ID: 2)
-        // When mapping `$results['hits']['hits']`, the first item (ID: 1) will return null in `Collection::map()`
-        // This will result in `Collection::toBase()` being called, converting to a `Support\Collection`
-        $model
-            ->method('keyBy')
-            ->willReturn([
-                2 => $model,
-            ]);
+		// The mocked `newQuery` chain will return an array of a single model (ID: 2)
+		// When mapping `$results['hits']['hits']`, the first item (ID: 1) will return null in `Collection::map()`
+		// This will result in `Collection::toBase()` being called, converting to a `Support\Collection`
+		$model
+			->method('keyBy')
+			->willReturn([
+				2 => $model,
+			]);
 
-        $builder = $this
-            ->getMockBuilder(FilterBuilder::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+		$builder = $this
+			->getMockBuilder(FilterBuilder::class)
+			->disableOriginalConstructor()
+			->getMock();
 
-        $collection = $this->engine->map($builder, $results, $model);
+		$collection = $this->engine->map($builder, $results, $model);
 
-        $this->assertSame(
-            [$model],
-            $collection->all()
-        );
+		$this->assertSame(
+			[$model],
+			$collection->all()
+		);
 
-        // Assert that an `Eloquent\Database\Collection` is returned
-        $this->assertInstanceOf(Collection::class, $collection);
-    }
+		// Assert that an `Eloquent\Database\Collection` is returned
+		$this->assertInstanceOf(Collection::class, $collection);
+	}
 
-    public function testGetTotalCount()
-    {
-        $results = [
-            'hits' => [
-                'total' => [
-                    'value' => 100,
-                    'relation' => 'eq',
-                ],
-            ],
-        ];
+	public function testGetTotalCount(): void
+	{
+		$results = [
+			'hits' => [
+				'total' => [
+					'value'    => 100,
+					'relation' => 'eq',
+				],
+			],
+		];
 
-        $this->assertSame(
-            100,
-            $this->engine->getTotalCount($results)
-        );
-    }
+		$this->assertSame(
+			100,
+			$this->engine->getTotalCount($results)
+		);
+	}
 }

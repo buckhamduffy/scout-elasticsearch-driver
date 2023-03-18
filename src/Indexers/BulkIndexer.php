@@ -13,11 +13,10 @@ use ScoutElastic\Interfaces\IndexerInterface;
 
 class BulkIndexer implements IndexerInterface
 {
-
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
-	public function update(Collection $models)
+	public function update(Collection $models): void
 	{
 		$model = $models->first();
 		$indexConfigurator = $model->getIndexConfigurator();
@@ -59,7 +58,7 @@ class BulkIndexer implements IndexerInterface
 		if ($response['errors'] ?? null) {
 			// Response included every record's status which is a lot to dig through when chunking by thousand
 			// Sort through the items to only log the failed items
-			$errors = array_map(fn($row) => $row['index']['error'], array_filter($response['items'], fn(array $item) => array_key_exists('error', $item['index'])));
+			$errors = array_map(fn ($row) => $row['index']['error'], array_filter($response['items'], fn (array $item) => array_key_exists('error', $item['index'])));
 
 			$exception = null;
 			foreach ($errors as $error) {
@@ -77,11 +76,10 @@ class BulkIndexer implements IndexerInterface
 
 			throw new Exception('ElasticSearch responded with an error', 0, $exception);
 		}
-
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
 	public function delete(Collection $models): void
 	{
@@ -104,5 +102,4 @@ class BulkIndexer implements IndexerInterface
 
 		ElasticClient::bulk($bulkPayload->get());
 	}
-
 }

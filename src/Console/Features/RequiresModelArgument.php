@@ -20,8 +20,8 @@ trait RequiresModelArgument
 
 		$modelInstance = new $modelClass();
 
-		if (!($modelInstance instanceof Model) ||
-			!in_array(Searchable::class, class_uses_recursive($modelClass))
+		if (!($modelInstance instanceof Model)
+			|| !in_array(Searchable::class, class_uses_recursive($modelClass))
 		) {
 			throw new InvalidArgumentException(sprintf(
 				'The %s class must extend %s and use the %s trait.',

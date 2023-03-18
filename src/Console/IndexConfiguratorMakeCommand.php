@@ -8,27 +8,26 @@ use Illuminate\Contracts\Filesystem\FileNotFoundException;
 
 class IndexConfiguratorMakeCommand extends GeneratorCommand
 {
-
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 * @var string
 	 */
 	protected $name = 'make:index-configurator';
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 * @var string
 	 */
 	protected $description = 'Create a new Elasticsearch index configurator';
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 * @var string
 	 */
 	protected $type = 'Configurator';
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
 	protected function getStub(): string
 	{
@@ -59,5 +58,4 @@ class IndexConfiguratorMakeCommand extends GeneratorCommand
 
 		return $this;
 	}
-
 }

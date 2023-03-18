@@ -7,25 +7,25 @@ use Illuminate\Console\GeneratorCommand;
 class SearchRuleMakeCommand extends GeneratorCommand
 {
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 * @var string
 	 */
 	protected $name = 'make:search-rule';
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 * @var string
 	 */
 	protected $description = 'Create a new search rule';
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 * @var string
 	 */
 	protected $type = 'Rule';
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
 	protected function getStub(): string
 	{

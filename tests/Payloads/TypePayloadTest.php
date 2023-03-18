@@ -8,45 +8,45 @@ use ScoutElastic\Tests\Dependencies\Model;
 
 class TypePayloadTest extends AbstractTestCase
 {
-    use Model;
+	use Model;
 
-    public function testDefault()
-    {
-        $model = $this->mockModel();
-        $payload = new TypePayload($model);
+	public function testDefault(): void
+	{
+		$model = $this->mockModel();
+		$payload = new TypePayload($model);
 
-        $this->assertSame(
-            [
-                'index' => 'test',
-                'type' => 'test',
-            ],
-            $payload->get()
-        );
-    }
+		$this->assertSame(
+			[
+				'index' => 'test',
+				'type'  => 'test',
+			],
+			$payload->get()
+		);
+	}
 
-    public function testSet()
-    {
-        $indexConfigurator = $this->mockIndexConfigurator([
-            'name' => 'foo',
-        ]);
+	public function testSet(): void
+	{
+		$indexConfigurator = $this->mockIndexConfigurator([
+			'name' => 'foo',
+		]);
 
-        $model = $this->mockModel([
-            'searchable_as' => 'bar',
-            'index_configurator' => $indexConfigurator,
-        ]);
+		$model = $this->mockModel([
+			'searchable_as'      => 'bar',
+			'index_configurator' => $indexConfigurator,
+		]);
 
-        $payload = (new TypePayload($model))
-            ->set('index', 'test_index')
-            ->set('type', 'test_type')
-            ->set('body', []);
+		$payload = (new TypePayload($model))
+			->set('index', 'test_index')
+			->set('type', 'test_type')
+			->set('body', []);
 
-        $this->assertSame(
-            [
-                'index' => 'foo',
-                'type' => 'bar',
-                'body' => [],
-            ],
-            $payload->get()
-        );
-    }
+		$this->assertSame(
+			[
+				'index' => 'foo',
+				'type'  => 'bar',
+				'body'  => [],
+			],
+			$payload->get()
+		);
+	}
 }

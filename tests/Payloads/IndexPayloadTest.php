@@ -8,50 +8,50 @@ use ScoutElastic\Tests\Dependencies\IndexConfigurator;
 
 class IndexPayloadTest extends AbstractTestCase
 {
-    use IndexConfigurator;
+	use IndexConfigurator;
 
-    public function testDefault()
-    {
-        $indexConfigurator = $this->mockIndexConfigurator();
-        $payload = new IndexPayload($indexConfigurator);
+	public function testDefault(): void
+	{
+		$indexConfigurator = $this->mockIndexConfigurator();
+		$payload = new IndexPayload($indexConfigurator);
 
-        $this->assertSame(
-            ['index' => 'test'],
-            $payload->get()
-        );
-    }
+		$this->assertSame(
+			['index' => 'test'],
+			$payload->get()
+		);
+	}
 
-    public function testUseAlias()
-    {
-        $indexConfigurator = $this->mockIndexConfigurator([
-            'name' => 'foo',
-        ]);
+	public function testUseAlias(): void
+	{
+		$indexConfigurator = $this->mockIndexConfigurator([
+			'name' => 'foo',
+		]);
 
-        $payload = (new IndexPayload($indexConfigurator))
-            ->useAlias('write');
+		$payload = (new IndexPayload($indexConfigurator))
+			->useAlias('write');
 
-        $this->assertSame(
-            ['index' => 'foo_write'],
-            $payload->get()
-        );
-    }
+		$this->assertSame(
+			['index' => 'foo_write'],
+			$payload->get()
+		);
+	}
 
-    public function testSet()
-    {
-        $indexConfigurator = $this->mockIndexConfigurator([
-            'name' => 'foo',
-        ]);
+	public function testSet(): void
+	{
+		$indexConfigurator = $this->mockIndexConfigurator([
+			'name' => 'foo',
+		]);
 
-        $payload = (new IndexPayload($indexConfigurator))
-            ->set('index', 'bar')
-            ->set('settings', ['key' => 'value']);
+		$payload = (new IndexPayload($indexConfigurator))
+			->set('index', 'bar')
+			->set('settings', ['key' => 'value']);
 
-        $this->assertSame(
-            [
-                'index' => 'foo',
-                'settings' => ['key' => 'value'],
-            ],
-            $payload->get()
-        );
-    }
+		$this->assertSame(
+			[
+				'index'    => 'foo',
+				'settings' => ['key' => 'value'],
+			],
+			$payload->get()
+		);
+	}
 }

@@ -6,7 +6,6 @@ use ScoutElastic\Payloads\RawPayload;
 
 class FunctionScoreBuilder
 {
-
 	private ?string $score_mode = null;
 	private ?string $boost_mode = null;
 	private array $functions = [];
@@ -140,7 +139,6 @@ class FunctionScoreBuilder
 		return $this;
 	}
 
-
 	public function buildPayload(): RawPayload
 	{
 		$payload = new RawPayload();
@@ -156,5 +154,4 @@ class FunctionScoreBuilder
 
 		return $payload;
 	}
-
 }

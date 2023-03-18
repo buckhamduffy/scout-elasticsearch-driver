@@ -11,7 +11,6 @@ use ScoutElastic\Interfaces\IndexConfiguratorInterface;
 
 trait Searchable
 {
-
 	use SourceSearchable {
 		SourceSearchable::getScoutKeyName as sourceGetScoutKeyName;
 	}
@@ -79,7 +78,7 @@ trait Searchable
 	/**
 	 * Execute the search.
 	 *
-	 * @param callable|null $callback
+	 * @param  null|callable                    $callback
 	 * @return FilterBuilder|SearchBuilder|void
 	 */
 	public static function search(string $query, $callback = null)
@@ -109,9 +108,8 @@ trait Searchable
 	/**
 	 * Set the highlight attribute.
 	 *
-	 * @return void
 	 */
-	public function setHighlightAttribute(Highlight $value)
+	public function setHighlightAttribute(Highlight $value): void
 	{
 		$this->highlight = $value;
 	}
@@ -119,7 +117,7 @@ trait Searchable
 	/**
 	 * Get the highlight attribute.
 	 *
-	 * @return Highlight|null
+	 * @return null|Highlight
 	 */
 	public function getHighlightAttribute()
 	{
@@ -129,7 +127,6 @@ trait Searchable
 	/**
 	 * Get the key name used to index the model.
 	 *
-	 * @return mixed
 	 */
 	public function getScoutKeyName()
 	{
@@ -137,11 +134,10 @@ trait Searchable
 	}
 
 	/**
-	 * @return string[]|mixed
+	 * @return mixed|string[]
 	 */
 	public function getAggregateRules()
 	{
 		return isset($this->aggregateRules) && count($this->aggregateRules) > 0 ? $this->aggregateRules : [AggregateRule::class];
 	}
-
 }

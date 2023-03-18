@@ -2,24 +2,23 @@
 
 namespace ScoutElastic;
 
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\LazyCollection;
+use stdClass;
 use Laravel\Scout\Builder;
+use Illuminate\Support\Arr;
 use Laravel\Scout\Engines\Engine;
+use ScoutElastic\Payloads\RawPayload;
+use Illuminate\Support\LazyCollection;
+use ScoutElastic\Payloads\TypePayload;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Artisan;
+use ScoutElastic\Facades\ElasticClient;
 use ScoutElastic\Builders\FilterBuilder;
 use ScoutElastic\Builders\SearchBuilder;
-use ScoutElastic\Facades\ElasticClient;
+use Illuminate\Database\Eloquent\Collection;
 use ScoutElastic\Interfaces\IndexerInterface;
-use ScoutElastic\Payloads\RawPayload;
-use ScoutElastic\Payloads\TypePayload;
-use stdClass;
 
 class ElasticEngine extends Engine
 {
-
 	/**
 	 * The indexer interface.
 	 */
@@ -38,7 +37,7 @@ class ElasticEngine extends Engine
 	/**
 	 * ElasticEngine constructor.
 	 *
-	 * @param bool $updateMapping
+	 * @param  bool $updateMapping
 	 * @return void
 	 */
 	public function __construct(IndexerInterface $indexer, $updateMapping)
@@ -49,14 +48,14 @@ class ElasticEngine extends Engine
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
-	public function update($models)
+	public function update($models): void
 	{
 		if ($this->updateMapping) {
 			$self = $this;
 
-			$models->each(function ($model) use ($self) {
+			$models->each(function($model) use ($self) {
 				$modelClass = get_class($model);
 
 				if (in_array($modelClass, $self::$updatedMappings)) {
@@ -78,7 +77,7 @@ class ElasticEngine extends Engine
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
 	public function delete($models): void
 	{
@@ -127,8 +126,7 @@ class ElasticEngine extends Engine
 			$payloadCollection->push($payload);
 		}
 
-		return $payloadCollection->map(function (TypePayload $payload) use ($builder, $options) {
-
+		return $payloadCollection->map(function(TypePayload $payload) use ($builder, $options) {
 			$payload
 				->setIfNotEmpty('body._source', $builder->select)
 				->setIfNotEmpty('body.collapse.field', $builder->collapse)
@@ -161,7 +159,6 @@ class ElasticEngine extends Engine
 				$payload->unset('body.query');
 				$payload->set('body.query.function_score', $functionPayload->get());
 			}
-			
 
 			return $payload->get();
 		});
@@ -187,7 +184,7 @@ class ElasticEngine extends Engine
 
 		$this
 			->buildSearchQueryPayloadCollection($builder, $options)
-			->each(function ($payload) use (&$results) {
+			->each(function($payload) use (&$results) {
 				$results = ElasticClient::search($payload);
 				$results['_payload'] = $payload;
 
@@ -200,8 +197,8 @@ class ElasticEngine extends Engine
 	}
 
 	/**
-	 * {@inheritdoc}
-	 * @return mixed|array<string, mixed>
+	 * {@inheritDoc}
+	 * @return array<string, mixed>|mixed
 	 */
 	public function search(Builder $builder)
 	{
@@ -209,8 +206,8 @@ class ElasticEngine extends Engine
 	}
 
 	/**
-	 * {@inheritdoc}
-	 * @return mixed|array<string, mixed>
+	 * {@inheritDoc}
+	 * @return array<string, mixed>|mixed
 	 */
 	public function paginate(Builder $builder, $perPage, $page)
 	{
@@ -254,7 +251,7 @@ class ElasticEngine extends Engine
 
 		$this
 			->buildSearchQueryPayloadCollection($builder, ['highlight' => false])
-			->each(function ($payload) use (&$count) {
+			->each(function($payload) use (&$count) {
 				$result = ElasticClient::count($payload);
 
 				$count = $result['count'];
@@ -271,7 +268,6 @@ class ElasticEngine extends Engine
 	 * Make a raw search.
 	 *
 	 * @param mixed[] $query
-	 * @return mixed
 	 */
 	public function searchRaw(Model $model, array $query)
 	{
@@ -283,7 +279,7 @@ class ElasticEngine extends Engine
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
 	public function mapIds($results, string $key = 'id'): \Illuminate\Support\Collection
 	{
@@ -291,7 +287,7 @@ class ElasticEngine extends Engine
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
 	public function map(Builder $builder, $results, $model): Collection
 	{
@@ -315,14 +311,14 @@ class ElasticEngine extends Engine
 
 		$models = $query
 			->whereIn($scoutKeyName, $ids)
-			->when($builder->queryCallback, fn($query, $callback) => $callback($query))
+			->when($builder->queryCallback, fn ($query, $callback) => $callback($query))
 			->get($columns)
 			->keyBy($scoutKeyName);
 
 		$withScores = $builder->withScores;
 
 		$values = Collection::make($results['hits']['hits'])
-			->map(function ($hit) use ($models, $withScores) {
+			->map(function($hit) use ($models, $withScores) {
 				$id = $hit['_id'];
 
 				if (isset($models[$id])) {
@@ -350,7 +346,7 @@ class ElasticEngine extends Engine
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 * @return int|mixed
 	 */
 	public function getTotalCount($results)
@@ -359,7 +355,7 @@ class ElasticEngine extends Engine
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
 	public function flush($model): void
 	{
@@ -371,7 +367,7 @@ class ElasticEngine extends Engine
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
 	public function lazyMap(Builder $builder, $results, $model): LazyCollection
 	{
@@ -395,14 +391,14 @@ class ElasticEngine extends Engine
 
 		$models = $query
 			->whereIn($scoutKeyName, $ids)
-			->when($builder->queryCallback, fn($query, $callback) => $callback($query))
+			->when($builder->queryCallback, fn ($query, $callback) => $callback($query))
 			->get($columns)
 			->keyBy($scoutKeyName);
 
 		$withScores = $builder->withScores;
 
 		$values = LazyCollection::make($results['hits']['hits'])
-			->map(function ($hit) use ($models, $withScores) {
+			->map(function($hit) use ($models, $withScores) {
 				$id = $hit['_id'];
 
 				if (isset($models[$id])) {
@@ -430,7 +426,7 @@ class ElasticEngine extends Engine
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
 	public function createIndex($name, array $options = []): void
 	{
@@ -443,7 +439,7 @@ class ElasticEngine extends Engine
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
 	public function deleteIndex($name): void
 	{
@@ -454,5 +450,4 @@ class ElasticEngine extends Engine
 		ElasticClient::indices()
 			->delete($payload);
 	}
-
 }

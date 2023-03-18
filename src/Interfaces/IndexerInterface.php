@@ -7,19 +7,15 @@ use Illuminate\Database\Eloquent\Collection;
 
 interface IndexerInterface
 {
-
 	/**
 	 * Update documents.
 	 * @param $models Searchable[]
-	 * @return void
 	 */
-	public function update(Collection $models);
+	public function update(Collection $models): void;
 
 	/**
 	 * Delete documents.
 	 * @param $models Searchable[]
-	 * @return void
 	 */
-	public function delete(Collection $models);
-
+	public function delete(Collection $models): void;
 }

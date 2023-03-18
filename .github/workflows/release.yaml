@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    branches: [ master ]
+
+
+concurrency:
+  group: tag-${{github.ref}}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    name: Tag Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: master
+
+      - name: Conventional commits check
+        id: version
+        uses: oknozor/cocogitto-action@v3
+        with:
+          check: true
+          release: true
+          check-latest-tag-only: true
+          git-user: 'BuckhamBot'
+          git-user-email: 'buckhambot@users.noreply.github.com'
+
+      - name: push the changelog commit to master
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git config --global user.email github-actions@github.com
+          git config --global user.name github-actions
+          git push origin master
+
+      - name: Latest changeset for release
+        run: cog changelog --at ${{ steps.version.outputs.version }} > CHANGELOG.md
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          token: ${{ secrets.BOT_TOKEN }}
+          body_path: CHANGELOG.md
+          tag_name: ${{ steps.version.outputs.version }}

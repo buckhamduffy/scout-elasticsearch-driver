@@ -14,13 +14,13 @@ class ElasticIndexDropCommand extends Command
 	use RequiresIndexConfiguratorArgument;
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 * @var string
 	 */
 	protected $name = 'elastic:drop-index';
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 * @var string
 	 */
 	protected $description = 'Drop an Elasticsearch index';

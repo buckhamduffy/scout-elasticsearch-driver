@@ -18,13 +18,13 @@ class ElasticMigrateModelCommand extends Command
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 * @var string
 	 */
 	protected $name = 'elastic:migrate-model';
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 * @var string
 	 */
 	protected $description = 'Migrate model to another index';

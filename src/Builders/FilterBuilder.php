@@ -4,23 +4,22 @@ namespace ScoutElastic\Builders;
 
 use Closure;
 use Exception;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Collection as ModelCollection;
-use Illuminate\Database\Eloquent\Model;
+use Laravel\Scout\Builder;
 use Illuminate\Support\Arr;
+use InvalidArgumentException;
+use ScoutElastic\ElasticEngine;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-use InvalidArgumentException;
-use Laravel\Scout\Builder;
-use ScoutElastic\ElasticEngine;
+use Illuminate\Database\Eloquent\Model;
 use ScoutElastic\Interfaces\AggregateRuleInterface;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection as ModelCollection;
 
 /**
  * @method ElasticEngine engine()
  */
 class FilterBuilder extends Builder
 {
-
 	/**
 	 * The condition array.
 	 *
@@ -70,6 +69,7 @@ class FilterBuilder extends Builder
 	public bool $withTotalHits = false;
 
 	public ?FunctionScoreBuilder $functionScoreBuilder = null;
+	public $scriptScoreBuilder;
 
 	/**
 	 * List of operators that are allowed in ES
@@ -87,8 +87,8 @@ class FilterBuilder extends Builder
 	/**
 	 * FilterBuilder constructor.
 	 *
-	 * @param callable|null $callback
-	 * @param bool $softDelete
+	 * @param  null|callable $callback
+	 * @param  bool          $softDelete
 	 * @return void
 	 */
 	public function __construct(Model $model, $callback = null, $softDelete = false)
@@ -113,10 +113,8 @@ class FilterBuilder extends Builder
 	 *
 	 * Supported operators are =, &gt;, &lt;, &gt;=, &lt;=, &lt;&gt;
 	 *
-	 * @param string|Closure $field
-	 * @param mixed $operator
-	 * @param mixed $value
-	 * @param string $boolean
+	 * @param  Closure|string      $field
+	 * @param  string              $boolean
 	 * @return $this|FilterBuilder
 	 */
 	public function where($field, $operator = null, $value = null, $boolean = 'must'): self
@@ -200,16 +198,15 @@ class FilterBuilder extends Builder
 	}
 
 	/**
-	 * @param $column
-	 * @param null $operator
-	 * @param null $value
+	 * @param  null                                     $operator
+	 * @param  null                                     $value
 	 * @return $this|\Illuminate\Database\Query\Builder
 	 */
 	public function orWhere(
 		$column,
 		?string $operator = null,
 		?string $value = null
-	): \ScoutElastic\Builders\FilterBuilder {
+	): FilterBuilder {
 		[$value, $operator] = $this->prepareValueAndOperator(
 			$value,
 			$operator,
@@ -230,7 +227,6 @@ class FilterBuilder extends Builder
 		return $this;
 	}
 
-
 	/**
 	 * Adds Nested query
 	 */
@@ -250,10 +246,6 @@ class FilterBuilder extends Builder
 		return $this;
 	}
 
-
-	/**
-	 * @param $condition
-	 */
 	public function setNegativeCondition($condition, string $boolean = 'must'): void
 	{
 		if ($boolean == 'should') {
@@ -283,9 +275,6 @@ class FilterBuilder extends Builder
 		return $this;
 	}
 
-	/**
-	 * @param $field
-	 */
 	public function orWhereIn($field, array $value): self
 	{
 		return $this->whereIn($field, $value, 'should');
@@ -308,9 +297,6 @@ class FilterBuilder extends Builder
 		return $this;
 	}
 
-	/**
-	 * @param $field
-	 */
 	public function orWhereNotIn(string $field, array $value): self
 	{
 		return $this->whereNotIn($field, $value, 'should');
@@ -335,9 +321,6 @@ class FilterBuilder extends Builder
 		return $this;
 	}
 
-	/**
-	 * @param $field
-	 */
 	public function orWhereBetween(string $field, array $value): self
 	{
 		return $this->whereBetween($field, $value);
@@ -363,9 +346,6 @@ class FilterBuilder extends Builder
 		return $this;
 	}
 
-	/**
-	 * @param $field
-	 */
 	public function orWhereNotBetween(string $field, array $value): self
 	{
 		return $this->whereNotBetween($field, $value, 'should');
@@ -387,9 +367,6 @@ class FilterBuilder extends Builder
 		return $this;
 	}
 
-	/**
-	 * @param $field
-	 */
 	public function orWhereExists(string $field): self
 	{
 		return $this->whereExists($field, 'should');
@@ -427,7 +404,6 @@ class FilterBuilder extends Builder
 	 */
 	public function whereMatch(string $field, string $value, string $boolean = 'must', array $parameters = []): self
 	{
-
 		$parameters = $this->validatedParameters($parameters, [
 			'analyzer',
 			'auto_generate_synonyms_phrase_query',
@@ -453,25 +429,20 @@ class FilterBuilder extends Builder
 		return $this;
 	}
 
-	/**
-	 * @param $field
-	 * @param $value
-	 */
 	public function orWhereMatch(string $field, string $value, array $parameters = []): self
 	{
 		return $this->whereMatch($field, $value, 'should', $parameters);
 	}
 
-    /**
-     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-wildcard-query.html
-     */
+	/**
+	 * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-wildcard-query.html
+	 */
 	public function whereWildcard(string $field, string $value, string $boolean = 'must', array $parameters = []): self
 	{
-
 		$parameters = $this->validatedParameters($parameters, [
-            'boost',
-            'case_insensitive',
-            'rewrite',
+			'boost',
+			'case_insensitive',
+			'rewrite',
 		]);
 
 		$this->wheres[$boolean][] = [
@@ -505,10 +476,6 @@ class FilterBuilder extends Builder
 		return $this;
 	}
 
-	/**
-	 * @param $field
-	 * @param $value
-	 */
 	public function orWhereNotMatch(string $field, string $value): self
 	{
 		return $this->whereNotMatch($field, $value, 'should');
@@ -582,8 +549,8 @@ class FilterBuilder extends Builder
 	 * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-geo-distance-query.html Geo
 	 *     distance query
 	 *
-	 * @param string|array $value
-	 * @param int|string $distance
+	 * @param array|string $value
+	 * @param int|string   $distance
 	 */
 	public function whereGeoDistance(string $field, $value, $distance, string $boolean = 'must'): self
 	{
@@ -597,11 +564,6 @@ class FilterBuilder extends Builder
 		return $this;
 	}
 
-	/**
-	 * @param $field
-	 * @param $value
-	 * @param $distance
-	 */
 	public function orWhereGeoDistance(string $field, $value, $distance): self
 	{
 		return $this->whereGeoDistance($field, $value, $distance, 'should');
@@ -624,10 +586,6 @@ class FilterBuilder extends Builder
 		return $this;
 	}
 
-	/**
-	 * @param $field
-	 * @param $value
-	 */
 	public function orWhereGeoBoundingBox(string $field, array $value): self
 	{
 		return $this->whereGeoBoundingBox($field, $value, 'should');
@@ -652,9 +610,6 @@ class FilterBuilder extends Builder
 		return $this;
 	}
 
-	/**
-	 * @param $field
-	 */
 	public function orWhereGeoPolygon(string $field, array $points): self
 	{
 		return $this->whereGeoPolygon($field, $points, 'should');
@@ -714,7 +669,6 @@ class FilterBuilder extends Builder
 		return $result['aggregations'][$field]['value'];
 	}
 
-
 	/**
 	 * Adds rule to the aggregate rules of the builder.
 	 * @param AggregateRuleInterface|Closure $rule
@@ -733,16 +687,14 @@ class FilterBuilder extends Builder
 		if ($rule instanceof Closure) {
 			$ruleEntity = call_user_func($rule);
 			if (is_array($ruleEntity)) {
-				$this->aggregates = array_merge($this->aggregates, $ruleEntity);;
+				$this->aggregates = array_merge($this->aggregates, $ruleEntity);
+				;
 			}
 		}
 
 		return $this;
 	}
 
-	/**
-	 * @param $field
-	 */
 	public function orWhereGeoShape(string $field, array $shape, string $relation = 'INTERSECTS'): self
 	{
 		return $this->whereGeoShape($field, $shape, $relation, 'should');
@@ -815,7 +767,7 @@ class FilterBuilder extends Builder
 	 */
 	public function toQuery(bool $json = false)
 	{
-		$queries = $this->buildPayload()->map(fn($query) => $query['body']);
+		$queries = $this->buildPayload()->map(fn ($query) => $query['body']);
 
 		if ($queries->isEmpty()) {
 			throw new Exception('no query found');
@@ -851,7 +803,7 @@ class FilterBuilder extends Builder
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
 	public function get(): ModelCollection
 	{
@@ -873,7 +825,7 @@ class FilterBuilder extends Builder
 		}
 
 		return (new Collection($results['hits']['hits']))
-			->map(fn($row) => array_merge(
+			->map(fn ($row) => array_merge(
 				$row['_source'],
 				[
 					'score' => $row['_score'],
@@ -888,11 +840,11 @@ class FilterBuilder extends Builder
 	{
 		$className = get_class($this->model);
 
-		return $this->getRaw()->map(fn($row) => (new $className())->forceFill($row));
+		return $this->getRaw()->map(fn ($row) => (new $className())->forceFill($row));
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
 	public function paginate($perPage = null, $pageName = 'page', $page = null): LengthAwarePaginator
 	{
@@ -920,7 +872,6 @@ class FilterBuilder extends Builder
 	/**
 	 * Select one or many fields.
 	 *
-	 * @param mixed $fields
 	 */
 	public function select($fields): self
 	{
@@ -972,12 +923,12 @@ class FilterBuilder extends Builder
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
 	public function withTrashed(): self
 	{
 		$this->wheres['must'] = collect($this->wheres['must'])
-			->filter(fn($item): bool => Arr::get($item, 'term.__soft_deleted') !== 0)
+			->filter(fn ($item): bool => Arr::get($item, 'term.__soft_deleted') !== 0)
 			->values()
 			->all();
 
@@ -985,13 +936,25 @@ class FilterBuilder extends Builder
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
 	public function onlyTrashed()
 	{
-		return tap($this->withTrashed(), function (): void {
+		return tap($this->withTrashed(), function(): void {
 			$this->wheres['must'][] = ['term' => ['__soft_deleted' => 1]];
 		});
+	}
+
+	/**
+	 * Adds function score to the query
+	 */
+	public function withScriptScore(callable $callback): self
+	{
+		$builder = new FunctionScoreBuilder();
+		$callback($builder);
+		$this->functionScoreBuilder = $builder;
+
+		return $this;
 	}
 
 	/**
@@ -1005,7 +968,6 @@ class FilterBuilder extends Builder
 
 		return $this;
 	}
-
 
 	/**
 	 * Prepare the value and operator for a where clause.
@@ -1031,7 +993,6 @@ class FilterBuilder extends Builder
 	 *
 	 * Prevents using Null values with invalid operators.
 	 *
-	 * @param mixed $value
 	 */
 	protected function invalidOperatorAndValue(?string $operator, $value): bool
 	{
@@ -1061,5 +1022,4 @@ class FilterBuilder extends Builder
 
 		return $validated;
 	}
-
 }

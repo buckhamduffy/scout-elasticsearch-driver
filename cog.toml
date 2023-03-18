@@ -1,0 +1,15 @@
+ignore_merge_commits = true
+branch_whitelist = ["master", "release/*"]
+pre_bump_hooks = []
+post_bump_hooks = []
+tag_prefix = "v"
+
+[commit_types]
+chore = { changelog_title = "Chore" }
+ci = { changelog_title = "CI" }
+
+[changelog]
+path = "CHANGELOG.md"
+authors = []
+
+[bump_profiles]

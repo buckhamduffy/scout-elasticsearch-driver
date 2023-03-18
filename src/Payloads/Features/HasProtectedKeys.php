@@ -4,11 +4,9 @@ namespace ScoutElastic\Payloads\Features;
 
 trait HasProtectedKeys
 {
-
 	/**
 	 * Set a value.
 	 *
-	 * @param mixed $value
 	 * @return $this
 	 */
 	public function set(string $key, $value)
@@ -19,5 +17,4 @@ trait HasProtectedKeys
 
 		return parent::set($key, $value);
 	}
-
 }

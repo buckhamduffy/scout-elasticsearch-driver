@@ -11,9 +11,9 @@ use ScoutElastic\Interfaces\IndexerInterface;
 class SingleIndexer implements IndexerInterface
 {
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
-	public function update(Collection $models)
+	public function update(Collection $models): void
 	{
 		$models->each(function($model) {
 			if ($model::usesSoftDelete() && config('scout.soft_delete', false)) {
@@ -47,7 +47,7 @@ class SingleIndexer implements IndexerInterface
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
 	public function delete(Collection $models): void
 	{

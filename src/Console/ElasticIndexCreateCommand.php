@@ -13,13 +13,13 @@ class ElasticIndexCreateCommand extends Command
 	use RequiresIndexConfiguratorArgument;
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 * @var string
 	 */
 	protected $name = 'elastic:create-index';
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 * @var string
 	 */
 	protected $description = 'Create an Elasticsearch index';

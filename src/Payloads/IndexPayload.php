@@ -8,7 +8,6 @@ use ScoutElastic\Interfaces\IndexConfiguratorInterface;
 
 class IndexPayload extends RawPayload
 {
-
 	use HasProtectedKeys;
 
 	/**
@@ -57,5 +56,4 @@ class IndexPayload extends RawPayload
 
 		return $this;
 	}
-
 }
