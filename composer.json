@@ -27,7 +27,7 @@
     ],
     "require": {
         "php": "^8.0",
-        "elasticsearch/elasticsearch": ">=7.0 <=7.11.0",
+        "elasticsearch/elasticsearch": ">=7.0 <8",
         "laravel/scout": "^9.0|^10.0",
         "illuminate/contracts": "^9.0|^10.0",
         "ext-json": "*"
