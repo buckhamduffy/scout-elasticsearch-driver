@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v5.3.1 - 2023-07-07
+#### Bug Fixes
+- allow newer versions of elasticsearch package - (716e8a2) - Aaron Florey
+#### Chore
+- **(version)** v5.3.0 - (11f8bb1) - BuckhamBot
+- - -
+
 ## v5.3.0 - 2023-03-18
 #### Features
 - allow laravel 10 - (c1c9242) - Aaron Florey
