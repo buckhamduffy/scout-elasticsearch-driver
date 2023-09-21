@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v5.3.3 - 2023-09-21
+#### Bug Fixes
+- undefined operation rendering errors - (5c5f496) - Aaron Florey
+
+- - -
+
 ## v5.3.2 - 2023-09-21
 #### Bug Fixes
 - throw exception on failure to delete - (89d3b9e) - Aaron Florey
