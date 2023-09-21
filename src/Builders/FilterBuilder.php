@@ -282,10 +282,10 @@ class FilterBuilder extends Builder
 
 	/**
 	 * Add a whereNotIn condition.
-	 *
+     * @param string $field
 	 * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-terms-query.html Terms query
 	 */
-	public function whereNotIn(string $field, array $value, string $boolean = 'must'): self
+	public function whereNotIn($field, array $value, string $boolean = 'must'): self
 	{
 		$term = [
 			'terms' => [
