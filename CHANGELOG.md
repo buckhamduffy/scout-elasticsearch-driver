@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v5.3.4 - 2023-09-21
+#### Bug Fixes
+- compatibility with scout class - (bf44e32) - Aaron Florey
+#### Chore
+- **(version)** v5.3.3 - (fa2f884) - BuckhamBot
+- - -
+
 ## v5.3.3 - 2023-09-21
 #### Bug Fixes
 - undefined operation rendering errors - (5c5f496) - Aaron Florey
