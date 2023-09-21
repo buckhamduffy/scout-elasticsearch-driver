@@ -2,17 +2,18 @@
 
 namespace ScoutElastic\Indexers;
 
-use Log;
 use Exception;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Arr;
+use ScoutElastic\Facades\ElasticClient;
+use ScoutElastic\Interfaces\IndexerInterface;
 use ScoutElastic\Migratable;
 use ScoutElastic\Payloads\RawPayload;
 use ScoutElastic\Payloads\TypePayload;
-use ScoutElastic\Facades\ElasticClient;
-use Illuminate\Database\Eloquent\Collection;
-use ScoutElastic\Interfaces\IndexerInterface;
 
 class BulkIndexer implements IndexerInterface
 {
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -31,7 +32,7 @@ class BulkIndexer implements IndexerInterface
 			$bulkPayload->set('refresh', $documentRefresh);
 		}
 
-		$models->each(function($model) use ($bulkPayload) {
+		$models->each(function ($model) use ($bulkPayload) {
 			if ($model::usesSoftDelete() && config('scout.soft_delete', false)) {
 				$model->pushSoftDeleteMetadata();
 			}
@@ -53,29 +54,8 @@ class BulkIndexer implements IndexerInterface
 				->add('body', $modelData);
 		});
 
-		$response = ElasticClient::bulk($bulkPayload->get());
-
-		if ($response['errors'] ?? null) {
-			// Response included every record's status which is a lot to dig through when chunking by thousand
-			// Sort through the items to only log the failed items
-			$errors = array_map(fn ($row) => $row['index']['error'], array_filter($response['items'], fn (array $item) => array_key_exists('error', $item['index'])));
-
-			$exception = null;
-			foreach ($errors as $error) {
-				$exception = new Exception(
-					sprintf(
-						'[%s] %s - %s',
-						$indexConfigurator->getName(),
-						$error['type'],
-						$error['reason']
-					),
-					0,
-					$exception
-				);
-			}
-
-			throw new Exception('ElasticSearch responded with an error', 0, $exception);
-		}
+		$rsp = ElasticClient::bulk($bulkPayload->get());
+		$this->handleResponse($rsp);
 	}
 
 	/**
@@ -87,7 +67,7 @@ class BulkIndexer implements IndexerInterface
 
 		$bulkPayload = new TypePayload($model);
 
-		$models->each(function($model) use ($bulkPayload): void {
+		$models->each(function ($model) use ($bulkPayload): void {
 			$actionPayload = (new RawPayload())
 				->set('delete._id', $model->getScoutKey());
 
@@ -100,6 +80,37 @@ class BulkIndexer implements IndexerInterface
 
 		$bulkPayload->set('client.ignore', 404);
 
-		ElasticClient::bulk($bulkPayload->get());
+		$rsp = ElasticClient::bulk($bulkPayload->get());
+		$this->handleResponse($rsp);
+	}
+
+	private function handleResponse(array $response)
+	{
+		if (Arr::get($response, 'errors') !== true) {
+			return;
+		}
+
+		// Response included every record's status which is a lot to dig through when chunking by thousand
+		// Sort through the items to only log the failed items
+		$errors = array_map(
+			fn ($row) => $row['index']['error'],
+			array_filter($response['items'], fn (array $item) => array_key_exists('error', $item['index']))
+		);
+
+		$exception = null;
+		foreach ($errors as $error) {
+			$exception = new Exception(
+				sprintf(
+					'[%s] %s - %s',
+					$indexConfigurator->getName(),
+					$error['type'],
+					$error['reason']
+				),
+				0,
+				$exception
+			);
+		}
+
+		throw new Exception('ElasticSearch responded with an error', 0, $exception);
 	}
 }
