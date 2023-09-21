@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file. See [conven
 ## v5.3.3 - 2023-09-21
 #### Bug Fixes
 - undefined operation rendering errors - (5c5f496) - Aaron Florey
+#### Chore
+- **(version)** v5.3.3 - (6d87c99) - Aaron Florey
+- - -
+
+## v5.3.3 - 2023-09-21
+#### Bug Fixes
+- undefined operation rendering errors - (5c5f496) - Aaron Florey
 
 - - -
 
