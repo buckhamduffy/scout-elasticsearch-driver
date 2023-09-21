@@ -90,19 +90,23 @@ class BulkIndexer implements IndexerInterface
 			return;
 		}
 
-		// Response included every record's status which is a lot to dig through when chunking by thousand
-		// Sort through the items to only log the failed items
-		$errors = array_map(
-			fn ($row) => $row['index']['error'],
-			array_filter($response['items'], fn (array $item) => array_key_exists('error', $item['index']))
+		$errors = array_filter(
+			array_map(function ($row) {
+				$operation = array_values($row)[0];
+
+				if (array_key_exists('error', $operation)) {
+					return $operation['error'];
+				}
+
+				return null;
+			}, $response['items'])
 		);
 
 		$exception = null;
 		foreach ($errors as $error) {
 			$exception = new Exception(
 				sprintf(
-					'[%s] %s - %s',
-					$indexConfigurator->getName(),
+					'%s - %s',
 					$error['type'],
 					$error['reason']
 				),
