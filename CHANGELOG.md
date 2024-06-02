@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v5.3.5 - 2024-06-02
+#### Bug Fixes
+- allow laravel 11 - (d88444d) - Aaron Florey
+
+- - -
+
 ## v5.3.4 - 2023-09-21
 #### Bug Fixes
 - compatibility with scout class - (bf44e32) - Aaron Florey
