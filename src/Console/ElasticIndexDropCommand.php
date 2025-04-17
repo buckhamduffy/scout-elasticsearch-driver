@@ -2,11 +2,8 @@
 
 namespace ScoutElastic\Console;
 
-use ScoutElastic\Migratable;
 use Illuminate\Console\Command;
-use ScoutElastic\Payloads\RawPayload;
 use ScoutElastic\Facades\ElasticClient;
-use ScoutElastic\Interfaces\IndexConfiguratorInterface;
 use ScoutElastic\Console\Features\RequiresIndexConfiguratorArgument;
 
 class ElasticIndexDropCommand extends Command
@@ -31,37 +28,29 @@ class ElasticIndexDropCommand extends Command
 	public function handle(): void
 	{
 		$configurator = $this->getIndexConfigurator();
-		$indexName = $this->resolveIndexName($configurator);
 
-		$payload = (new RawPayload())
-			->set('index', $indexName)
-			->get();
-
-		ElasticClient::indices()
-			->delete($payload);
-
-		$this->info(sprintf(
-			'The index %s was deleted!',
-			$indexName
-		));
-	}
-
-	/**
-	 * @return mixed|string|void
-	 */
-	protected function resolveIndexName(IndexConfiguratorInterface $configurator)
-	{
-		if (in_array(Migratable::class, class_uses_recursive($configurator))) {
-			$payload = (new RawPayload())
-				->set('name', $configurator->getWriteAlias())
-				->get();
-
-			$aliases = ElasticClient::indices()
-				->getAlias($payload);
-
-			return key($aliases);
+		if (method_exists($configurator, 'getWriteAlias')) {
+			$this->delete($configurator->getWriteAlias());
 		}
 
-		return $configurator->getName();
+		$this->delete($configurator->getName());
+	}
+
+	protected function delete(string $indexName): void
+	{
+		$indices = ElasticClient::indices();
+
+		$isAlias = $indices->existsAlias(['name' => $indexName]);
+		if ($isAlias) {
+			return;
+		}
+
+		$hasIndex = $indices->exists(['index' => $indexName]);
+		if (!$hasIndex) {
+			return;
+		}
+
+		$indices->delete(['index' => $indexName]);
+		$this->info(sprintf('The index %s was deleted!', $indexName));
 	}
 }
