@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v5.3.6 - 2025-04-17
+#### Bug Fixes
+- delete write alias if it's a full index - (31d76f6) - Aaron Florey
+
+- - -
+
 ## v5.3.5 - 2024-06-02
 #### Bug Fixes
 - allow laravel 11 - (d88444d) - Aaron Florey
