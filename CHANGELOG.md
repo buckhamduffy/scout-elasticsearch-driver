@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file. See [conven
 - - -
 ## v5.3.6 - 2025-04-17
 #### Bug Fixes
+- auto release workflow update - (3e9626e) - Aaron Florey
+- delete write alias if it's a full index - (31d76f6) - Aaron Florey
+#### Chore
+- **(version)** v5.3.6 - (6ba2144) - BuckhamBot
+
+- - -
+
+## v5.3.6 - 2025-04-17
+#### Bug Fixes
 - delete write alias if it's a full index - (31d76f6) - Aaron Florey
 
 - - -
