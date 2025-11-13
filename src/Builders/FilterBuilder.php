@@ -264,20 +264,24 @@ class FilterBuilder extends Builder
 	 *
 	 * @param string $field
 	 */
-	public function whereIn($field, array $value, string $boolean = 'must'): self
+	public function whereIn($field, $values, $boolean = 'must')
 	{
+		if (!is_array($values)) {
+			$values = [$values];
+		}
+
 		$this->wheres[$boolean][] = [
 			'terms' => [
-				$field => $value,
+				$field => $values,
 			],
 		];
 
 		return $this;
 	}
 
-	public function orWhereIn($field, array $value): self
+	public function orWhereIn($field, $values)
 	{
-		return $this->whereIn($field, $value, 'should');
+		return $this->whereIn($field, $values, 'should');
 	}
 
 	/**
@@ -285,11 +289,15 @@ class FilterBuilder extends Builder
      * @param string $field
 	 * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-terms-query.html Terms query
 	 */
-	public function whereNotIn($field, array $value, string $boolean = 'must'): self
+	public function whereNotIn($field, $values, $boolean = 'must')
 	{
+		if (!is_array($values)) {
+			$values = [$values];
+		}
+
 		$term = [
 			'terms' => [
-				$field => $value,
+				$field => $values,
 			],
 		];
 		$this->setNegativeCondition($term, $boolean);
