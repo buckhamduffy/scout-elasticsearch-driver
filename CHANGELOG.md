@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v5.3.7 - 2025-11-13
+#### Bug Fixes
+- add Laravel 12 support; fix compatibility with scout 10 - (d69055d) - Ben Malen
+#### Chore
+- update .editorconfig - (179a8f8) - BuckhamBot
+
+- - -
+
 ## v5.3.6 - 2025-04-17
 #### Bug Fixes
 - auto release workflow update - (3e9626e) - Aaron Florey
